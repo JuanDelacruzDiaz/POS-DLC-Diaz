@@ -11,28 +11,43 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
-        .header { background-color: #004080; color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 24px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
+        
+        /* PANTALLA DE LOGIN */
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #004080; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+        .login-box h2 { color: #004080; margin-bottom: 20px; }
+        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .login-box button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .login-box button:hover { background: #218838; }
+
+        /* APLICACIÓN PRINCIPAL (Oculta por defecto) */
+        #app-container { display: none; padding: 20px; }
+        
+        .header { background-color: #004080; color: white; padding: 15px 20px; text-align: left; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
         .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 12px 20px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 14px; }
-        .tab-btn:hover { background: #d0d4dc; }
         .tab-btn.active { background: #004080; color: white; box-shadow: 0 4px 6px rgba(0,64,128,0.3); }
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 12px 10px; text-align: left; }
+        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8f9fa; color: #555; }
-        tr:hover { background-color: #f1f3f5; }
-        .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; transition: 0.2s; }
-        .btn:hover { background: #218838; }
+        
+        .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; }
         .btn-danger { background: #dc3545; padding: 6px 10px; }
         .btn-blue { background: #007bff; }
-        input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         .totales { font-size: 1.4em; text-align: right; margin-top: 20px; font-weight: bold; color: #004080; }
+        
         .kpi-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #004080; margin-bottom: 15px; }
         .kpi-title { font-size: 14px; color: #666; margin-bottom: 5px; }
         .kpi-value { font-size: 24px; font-weight: bold; color: #333; }
@@ -42,156 +57,153 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1>Distribuidora de Papelería DLC Díaz - ERP Cloud</h1>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('pos')">🛒 Punto de Venta</button>
-        <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
-        <button class="tab-btn" onclick="showTab('compras')">📥 Compras</button>
-        <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
-        <button class="tab-btn" onclick="showTab('clientes')">👥 Clientes</button>
-        <button class="tab-btn" onclick="showTab('proveedores')">🚚 Proveedores</button>
-    </div>
-
-    <div id="pos" class="tab-content active">
-        <div class="grid-2">
-            <div>
-                <h3>Catálogo de Productos</h3>
-                <input type="text" id="buscarProd" placeholder="🔍 Buscar por nombre..." onkeyup="filtrarCatalogo()">
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <table>
-                        <thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Acción</th></tr></thead>
-                        <tbody id="tablaCatalogo"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                <h3>🛒 Ticket de Venta</h3>
-                <select id="clienteSelect"><option value="Mostrador">Público General / Mostrador</option></select>
-                <table>
-                    <thead><tr><th>Cant</th><th>Producto</th><th>Importe</th><th></th></tr></thead>
-                    <tbody id="tablaCarrito"></tbody>
-                </table>
-                <div class="grid-2" style="margin-top: 15px; gap: 10px;">
-                    <div><label>Descuento ($):</label><input type="number" id="descVenta" value="0" onchange="renderCarrito()"></div>
-                </div>
-                <div class="totales" id="totalVenta">TOTAL: $0.00</div>
-                <button class="btn" style="width:100%; margin-top:20px; font-size:16px;" onclick="cobrar()">🖨️ COBRAR E IMPRIMIR TICKET</button>
-            </div>
+    <div id="login-screen">
+        <div class="login-box">
+            <img src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" width="80" alt="Logo">
+            <h2>Acceso al Sistema</h2>
+            <input type="email" id="loginEmail" placeholder="Correo Electrónico">
+            <input type="password" id="loginPassword" placeholder="Contraseña">
+            <button onclick="iniciarSesion()">Ingresar al POS</button>
+            <p id="loginError" style="color: red; margin-top: 15px; display: none;">Credenciales incorrectas.</p>
         </div>
     </div>
 
-    <div id="inventario" class="tab-content">
-        <div class="grid-2">
-            <div>
-                <h3>Registrar Nuevo Producto</h3>
-                <input type="text" id="invCat" placeholder="Categoría (ej. Papel, Oficina)">
-                <input type="text" id="invNom" placeholder="Nombre del Producto">
-                <input type="number" id="invCosto" placeholder="Costo de Compra $">
-                <input type="number" id="invPrecio" placeholder="Precio de Venta $">
-                <input type="number" id="invStock" placeholder="Stock Inicial">
-                <button class="btn btn-blue" onclick="guardarProducto()">Guardar Producto</button>
-            </div>
+    <div id="app-container">
+        <div class="header">
+            <h1>Distribuidora DLC Díaz - ERP Cloud</h1>
+            <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
-        <h3 style="margin-top: 30px;">Inventario Actual</h3>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead><tr><th>Categoría</th><th>Nombre</th><th>Costo</th><th>Precio</th><th>Stock</th></tr></thead>
-                <tbody id="tablaInventario"></tbody>
-            </table>
-        </div>
-    </div>
 
-    <div id="compras" class="tab-content">
-        <div class="grid-2">
-            <div>
-                <h3>Registrar Entrada de Mercancía</h3>
-                <select id="compraProveedorSelect"><option value="">-- Selecciona un Proveedor --</option></select>
-                <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()"><option value="">-- Selecciona un Producto --</option></select>
-                <div class="grid-2" style="gap: 10px;">
-                    <div><label>Cantidad recibida:</label><input type="number" id="compraCant" value="1"></div>
-                    <div><label>Costo Unitario ($):</label><input type="number" id="compraCosto"></div>
-                </div>
-                <label>Actualizar Precio Venta ($):</label><input type="number" id="compraPrecio">
-                <button class="btn btn-blue" style="width: 100%;" onclick="agregarACompra()">Añadir a la lista</button>
-            </div>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                <h3>📥 Resumen de Ingreso</h3>
-                <table>
-                    <thead><tr><th>Cant</th><th>Producto</th><th>Subtotal</th></tr></thead>
-                    <tbody id="tablaListaCompra"></tbody>
-                </table>
-                <div class="totales" id="totalCompra">TOTAL COMPRA: $0.00</div>
-                <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA</button>
-            </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('pos')">🛒 POS</button>
+            <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
+            <button class="tab-btn" onclick="showTab('compras')">📥 Compras</button>
+            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
+            <button class="tab-btn" onclick="showTab('clientes')">👥 Clientes</button>
+            <button class="tab-btn" onclick="showTab('proveedores')">🚚 Proveedores</button>
         </div>
-    </div>
 
-    <div id="finanzas" class="tab-content">
-        <div class="grid-2">
-            <div>
-                <h3>📄 Estado de Resultados</h3>
-                <div class="kpi-card"><div class="kpi-title">Ingresos por Ventas</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
-                <div class="kpi-card" style="border-left-color: #dc3545;"><div class="kpi-title">Costo de Ventas</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
-                <div class="kpi-card"><div class="kpi-title">= Utilidad Bruta</div><div class="kpi-value" id="kpiBruta">$0.00</div></div>
-                <div class="kpi-card" style="border-left-color: #dc3545;"><div class="kpi-title">Gastos Operativos</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
-                <div class="kpi-card" style="border-left-color: #28a745; background-color: #e8f5e9;"><div class="kpi-title">UTILIDAD NETA</div><div class="kpi-value text-green" id="kpiNeta" style="font-size: 32px;">$0.00</div></div>
-            </div>
-            <div>
-                <h3>⚖️ Balance</h3>
-                <div class="kpi-card" style="border-left-color: #17a2b8;"><div class="kpi-title">Valor del Inventario</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                    <h4>Registrar Gasto</h4>
-                    <input type="text" id="gastoConcepto" placeholder="Concepto (Luz, Renta)">
-                    <input type="number" id="gastoMonto" placeholder="Monto $">
-                    <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
+        <div id="pos" class="tab-content active">
+            <div class="grid-2">
+                <div>
+                    <h3>Catálogo</h3>
+                    <input type="text" id="buscarProd" placeholder="🔍 Buscar producto..." onkeyup="filtrarCatalogo()">
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table><thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th></th></tr></thead><tbody id="tablaCatalogo"></tbody></table>
+                    </div>
                 </div>
-                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                    <h4>📥 Exportar Información</h4>
-                    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte (.csv)</button>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <h3>🛒 Ticket</h3>
+                    <select id="clienteSelect"><option value="Mostrador">Público General / Mostrador</option></select>
+                    <table><thead><tr><th>Cant</th><th>Producto</th><th>Importe</th><th></th></tr></thead><tbody id="tablaCarrito"></tbody></table>
+                    <div style="margin-top: 15px;"><label>Desc ($):</label><input type="number" id="descVenta" value="0" onchange="renderCarrito()"></div>
+                    <div class="totales" id="totalVenta">TOTAL: $0.00</div>
+                    <button class="btn" style="width:100%; margin-top:20px;" onclick="cobrar()">🖨️ COBRAR E IMPRIMIR</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="clientes" class="tab-content">
-        <div class="grid-2">
-            <div>
-                <h3>Nuevo Cliente</h3>
-                <input type="text" id="cliNom" placeholder="Nombre">
-                <input type="text" id="cliTel" placeholder="Teléfono">
-                <input type="text" id="cliDir" placeholder="Dirección">
-                <input type="email" id="cliEmail" placeholder="Email">
-                <button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar Cliente</button>
+        <div id="inventario" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <h3>Nuevo Producto</h3>
+                    <input type="text" id="invCat" placeholder="Categoría">
+                    <input type="text" id="invNom" placeholder="Nombre">
+                    <input type="number" id="invCosto" placeholder="Costo Compra $">
+                    <input type="number" id="invPrecio" placeholder="Precio Venta $">
+                    <input type="number" id="invStock" placeholder="Stock">
+                    <button class="btn btn-blue" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </div>
+            <h3 style="margin-top: 30px;">Inventario</h3>
+            <div style="overflow-x: auto;"><table><thead><tr><th>Cat</th><th>Nombre</th><th>Costo</th><th>Precio</th><th>Stock</th></tr></thead><tbody id="tablaInventario"></tbody></table></div>
+        </div>
+
+        <div id="compras" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <h3>Registrar Entrada</h3>
+                    <select id="compraProveedorSelect"><option value="">-- Proveedor --</option></select>
+                    <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()"><option value="">-- Producto --</option></select>
+                    <div class="grid-2" style="gap:10px;">
+                        <div><label>Cant:</label><input type="number" id="compraCant" value="1"></div>
+                        <div><label>Costo Nuevo $:</label><input type="number" id="compraCosto"></div>
+                    </div>
+                    <label>Precio Público Nuevo $:</label><input type="number" id="compraPrecio">
+                    <button class="btn btn-blue" style="width: 100%;" onclick="agregarACompra()">Añadir a lista</button>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <h3>📥 Resumen</h3>
+                    <table><thead><tr><th>Cant</th><th>Prod</th><th>Subtotal</th></tr></thead><tbody id="tablaListaCompra"></tbody></table>
+                    <div class="totales" id="totalCompra">TOTAL: $0.00</div>
+                    <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA</button>
+                </div>
             </div>
         </div>
-        <h3 style="margin-top: 30px;">Directorio</h3>
-        <table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table>
-    </div>
 
-    <div id="proveedores" class="tab-content">
-        <div class="grid-2">
-            <div>
-                <h3>Nuevo Proveedor</h3>
-                <input type="text" id="provNom" placeholder="Empresa">
-                <input type="text" id="provTel" placeholder="Teléfono">
-                <input type="text" id="provDir" placeholder="Dirección">
-                <input type="text" id="provContacto" placeholder="Contacto">
-                <button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar Proveedor</button>
+        <div id="finanzas" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <h3>📄 Estado de Resultados</h3>
+                    <div class="kpi-card"><div class="kpi-title">Ingresos</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Costo Mercancía</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
+                    <div class="kpi-card"><div class="kpi-title">= Utilidad Bruta</div><div class="kpi-value" id="kpiBruta">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Gastos Op.</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#28a745; background-color:#e8f5e9;"><div class="kpi-title">UTILIDAD NETA</div><div class="kpi-value text-green" id="kpiNeta" style="font-size:32px;">$0.00</div></div>
+                </div>
+                <div>
+                    <h3>⚖️ Balance y Exportación</h3>
+                    <div class="kpi-card" style="border-left-color:#17a2b8;"><div class="kpi-title">Valor Inventario</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
+                    <div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-top:20px;">
+                        <h4>Gasto Operativo</h4>
+                        <input type="text" id="gastoConcepto" placeholder="Concepto">
+                        <input type="number" id="gastoMonto" placeholder="Monto $">
+                        <button class="btn btn-danger" onclick="guardarGasto()">Registrar</button>
+                    </div>
+                    <div style="background:#e8f5e9; padding:20px; border-radius:8px; margin-top:20px;">
+                        <h4>📥 Reportes</h4>
+                        <button class="btn btn-blue" onclick="descargarCSV()">Descargar Ventas CSV</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <h3 style="margin-top: 30px;">Directorio</h3>
-        <table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table>
-    </div>
 
-    <script type="module">
+        <div id="clientes" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <h3>Nuevo Cliente</h3>
+                    <input type="text" id="cliNom" placeholder="Nombre">
+                    <input type="text" id="cliTel" placeholder="Teléfono">
+                    <input type="text" id="cliDir" placeholder="Dirección">
+                    <input type="email" id="cliEmail" placeholder="Email">
+                    <button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar Cliente</button>
+                </div>
+            </div>
+            <h3 style="margin-top: 30px;">Directorio</h3>
+            <table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <div id="proveedores" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <h3>Nuevo Proveedor</h3>
+                    <input type="text" id="provNom" placeholder="Empresa">
+                    <input type="text" id="provTel" placeholder="Teléfono">
+                    <input type="text" id="provDir" placeholder="Dirección">
+                    <input type="text" id="provContacto" placeholder="Contacto">
+                    <button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar Proveedor</button>
+                </div>
+            </div>
+            <h3 style="margin-top: 30px;">Directorio</h3>
+            <table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div> <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
-        const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
   projectId: "pos-dlc-diaz",
@@ -199,33 +211,73 @@
   messagingSenderId: "584151234669",
   appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
 };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
+        // Variables Globales
         let productos = []; let clientes = []; let proveedores = []; let ventas = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
+        let unsubscribeFuncs = []; // Para detener las escuchas de la BD si cerramos sesión
 
-        onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); });
-        onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); });
-        onSnapshot(collection(db, "proveedores"), (snap) => { proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']); poblarSelect('compraProveedorSelect', proveedores, 'nombre', ''); });
-        onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); });
-        onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); });
+        // --- SISTEMA DE AUTENTICACIÓN (LOGIN) ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuario LOGUEADO: Ocultar login, mostrar app, cargar base de datos
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                iniciarBaseDeDatos();
+            } else {
+                // Usuario NO LOGUEADO: Mostrar login, ocultar app, detener base de datos
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+                detenerBaseDeDatos();
+            }
+        });
 
+        window.iniciarSesion = function() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            document.getElementById('loginError').style.display = 'none';
+            
+            signInWithEmailAndPassword(auth, email, pass)
+                .then(() => { console.log("Sesión iniciada"); document.getElementById('loginPassword').value = ''; })
+                .catch((error) => { document.getElementById('loginError').style.display = 'block'; });
+        }
+
+        window.cerrarSesion = function() {
+            signOut(auth).then(() => { alert("Sesión cerrada correctamente"); });
+        }
+
+        // --- CARGA DE BASE DE DATOS SECUENCIAL ---
+        function iniciarBaseDeDatos() {
+            unsubscribeFuncs.push(onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "proveedores"), (snap) => { proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']); poblarSelect('compraProveedorSelect', proveedores, 'nombre', ''); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); }));
+        }
+
+        function detenerBaseDeDatos() {
+            unsubscribeFuncs.forEach(unsub => unsub());
+            unsubscribeFuncs = [];
+            productos = []; clientes = []; proveedores = []; ventas = []; gastos = [];
+        }
+
+        // --- UTILIDADES ---
         function renderTablaABM(idTabla, datos, campos) {
             const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = '';
             datos.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; });
         }
         function poblarSelect(idSelect, datos, campoTexto, opcionDefault) {
-            const sel = document.getElementById(idSelect);
-            sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : '';
+            const sel = document.getElementById(idSelect); sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : '';
             datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; });
         }
 
         window.guardarEntidad = async function(col) {
-            let data = col === 'clientes' 
-                ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } 
-                : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
+            let data = col === 'clientes' ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
             if(!data.nombre) return alert("Nombre obligatorio");
-            await addDoc(collection(db, col), data); alert("Guardado exitosamente"); document.querySelectorAll(`#${col} input`).forEach(i => i.value = '');
+            await addDoc(collection(db, col), data); alert("Guardado"); document.querySelectorAll(`#${col} input`).forEach(i => i.value = '');
         }
 
         window.guardarProducto = async function() {
@@ -233,12 +285,12 @@
             if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos");
             await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
         }
-
         function renderInventario() {
             const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = '';
             productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; });
         }
 
+        // --- POS ---
         window.renderCatalogoPOS = function(filtro = '') {
             const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = '';
             productos.forEach(p => {
@@ -250,7 +302,7 @@
         window.filtrarCatalogo = () => renderCatalogoPOS(document.getElementById('buscarProd').value);
 
         window.agregarCarritoPOS = function(id) {
-            const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Producto agotado");
+            const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Agotado");
             const item = carritoPOS.find(i => i.id === id);
             if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); }
             window.renderCarrito();
@@ -271,52 +323,27 @@
             let { subtotal, desc, total } = window.renderCarrito();
             let costoTotal = carritoPOS.reduce((sum, i) => sum + (i.costo * i.cant), 0);
             
-            // --- NUEVO: CÁLCULO DE FOLIO ASCENDENTE ---
-            let maxFolio = 0;
-            ventas.forEach(v => { if (v.folio && v.folio > maxFolio) maxFolio = v.folio; });
+            let maxFolio = 0; ventas.forEach(v => { if (v.folio && v.folio > maxFolio) maxFolio = v.folio; });
             let folio = maxFolio + 1;
-
-            const fechaActual = new Date();
-            const fechaStr = fechaActual.toLocaleString();
+            const fechaActual = new Date(); const fechaStr = fechaActual.toLocaleString();
 
             await addDoc(collection(db, "ventas"), { folio: folio, fecha: fechaStr, cliente: cliente, total: total, costo: costoTotal, descuento: desc, productos: carritoPOS });
             for (let i of carritoPOS) { await updateDoc(doc(db, "productos", i.id), { stock: i.stock - i.cant }); }
 
-            let dirCliente = "";
-            if(cliente !== "Mostrador") {
-                let objCli = clientes.find(c => c.nombre === cliente);
-                if(objCli) dirCliente = objCli.direccion;
-            }
-
-            // --- NUEVO: CÁLCULO DEL NOMBRE DEL ARCHIVO ---
-            let abreviatura = "MOS";
-            if(cliente !== "Mostrador") {
-                abreviatura = cliente.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
-            }
-            let dia = String(fechaActual.getDate()).padStart(2, '0');
-            let mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
-            let anio = fechaActual.getFullYear();
-            
-            let nombreArchivo = `Recibo-${abreviatura}_${dia}-${mes}-${anio}_${total.toFixed(2)}.pdf`;
+            let dirCliente = ""; if(cliente !== "Mostrador") { let objCli = clientes.find(c => c.nombre === cliente); if(objCli) dirCliente = objCli.direccion; }
+            let abrev = cliente !== "Mostrador" ? cliente.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase() : "MOS";
+            let fDoc = `${String(fechaActual.getDate()).padStart(2, '0')}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${fechaActual.getFullYear()}`;
+            let nombreArchivo = `Recibo-${abrev}_${fDoc}_${total.toFixed(2)}.pdf`;
 
             generarPDF(folio, fechaStr, cliente, dirCliente, carritoPOS, subtotal, desc, total, nombreArchivo);
-            
-            carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito();
-            alert(`Venta procesada. Folio: ${folio}`);
+            carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); alert(`Venta procesada. Folio: ${folio}`);
         }
 
         // --- COMPRAS ---
-        function poblarSelectProductos() {
-            const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Selecciona un Producto --</option>';
-            productos.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; });
-        }
-        window.cargarDatosProductoCompra = function() {
-            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value);
-            if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; }
-        }
+        function poblarSelectProductos() { const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; productos.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); }
+        window.cargarDatosProductoCompra = function() { const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; } }
         window.agregarACompra = function() {
-            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value);
-            if(!p) return alert("Selecciona un producto");
+            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(!p) return alert("Selecciona producto");
             let cant = parseInt(document.getElementById('compraCant').value); let nCosto = parseFloat(document.getElementById('compraCosto').value); let nPrecio = parseFloat(document.getElementById('compraPrecio').value);
             if(isNaN(cant) || isNaN(nCosto)) return;
             listaCompras.push({ id: p.id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto }); renderListaCompras();
@@ -324,7 +351,7 @@
         function renderListaCompras() {
             const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = ''; let total = 0;
             listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; });
-            document.getElementById('totalCompra').innerText = `TOTAL COMPRA: $${total.toFixed(2)}`;
+            document.getElementById('totalCompra').innerText = `TOTAL: $${total.toFixed(2)}`;
         }
         window.finalizarCompra = async function() {
             if(listaCompras.length === 0 || !document.getElementById('compraProveedorSelect').value) return alert("Faltan datos");
@@ -333,49 +360,37 @@
         }
 
         // --- FINANZAS ---
-        window.guardarGasto = async function() {
-            let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value);
-            if(!con || isNaN(mon)) return; await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon });
-            alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = '';
-        }
+        window.guardarGasto = async function() { let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); if(!con || isNaN(mon)) return; await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon }); alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = ''; }
         function calcularFinanzas() {
             let totalVentas = 0; let totalCostosVenta = 0; ventas.forEach(v => { totalVentas += v.total; totalCostosVenta += v.costo; });
             let totalGastos = 0; gastos.forEach(g => { totalGastos += g.monto; });
             let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
             let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); });
 
-            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`;
-            document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
+            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`; document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
             let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
             document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
         }
         window.descargarCSV = function() {
-            if (ventas.length === 0) return alert("No hay ventas registradas.");
-            let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad Neta\n";
-            ventas.forEach(v => {
-                let utilidad = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); 
-                csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}\n`;
-            });
+            if (ventas.length === 0) return alert("No hay ventas");
+            let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad\n";
+            ventas.forEach(v => { let u = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${u.toFixed(2)}\n`; });
             const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // --- GENERAR PDF ---
+        // --- PDF Y DRIVE ---
         function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total, nombreArchivoFinal) {
             const { jsPDF } = window.jspdf;
             let alto_base = 80; if(direccion) alto_base += 10; if(descuento > 0) alto_base += 10;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_base + (items.length * 10)] });
             
-            doc.setFontSize(9); doc.setFont("helvetica", "bold");
-            doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
-            doc.setFontSize(7); doc.setFont("helvetica", "normal");
-            doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
+            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
             doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
             
-            let y = 31;
-            doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; doc.text(`CLIENTE: ${cliente.substring(0,25)}`, 2, y); y += 4;
+            let y = 31; doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; doc.text(`CLIENTE: ${cliente.substring(0,25)}`, 2, y); y += 4;
             if(direccion) { doc.text(`DIR: ${direccion.substring(0,30)}`, 2, y); y += 4; }
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
-            
             doc.setFont("helvetica", "bold"); doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'}); doc.setFont("helvetica", "normal"); y+=2;
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
 
@@ -385,47 +400,25 @@
                 doc.text(nom, 2, y); y += 4; doc.setFontSize(8); doc.text(`${i.cant}`, 2, y); doc.text(`$${i.precio.toFixed(2)}`, 15, y); doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 56, y, {align: 'right'});
                 y += 2; doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 4;
             });
-
             y += 2;
             if(descuento > 0) { doc.text("SUBTOTAL:", 15, y); doc.text(`$${subtotal.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; }
-            
             doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
             doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
             
-            // 1. Descarga local con nuevo patrón de nombre
             doc.save(nombreArchivoFinal);
-
-            // 2. Extraer Base64
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-
-            // 3. Enviar a Drive
+            
             // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
             const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
 
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) })
-            .then(res => res.json())
-            .then(data => { if(data.status === "success") console.log("PDF en Drive OK"); })
-            .catch(err => console.error("Error Drive:", err));
+            .then(res => res.json()).then(data => { if(data.status === "success") console.log("PDF en Drive OK"); }).catch(err => console.error("Error Drive:", err));
         }
     </script>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('PWA Lista para instalarse', reg);
-                }).catch(err => {
-                    console.warn('Error en PWA', err);
-                });
-            });
-        }
-
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
+        function showTab(tabId) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); event.target.classList.add('active'); }
     </script>
 </body>
 </html>
