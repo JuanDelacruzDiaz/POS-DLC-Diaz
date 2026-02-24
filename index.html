@@ -117,12 +117,8 @@
         <div class="grid-2">
             <div>
                 <h3>Registrar Entrada de Mercancía</h3>
-                <select id="compraProveedorSelect">
-                    <option value="">-- Selecciona un Proveedor --</option>
-                </select>
-                <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()">
-                    <option value="">-- Selecciona un Producto --</option>
-                </select>
+                <select id="compraProveedorSelect"><option value="">-- Selecciona un Proveedor --</option></select>
+                <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()"><option value="">-- Selecciona un Producto --</option></select>
                 
                 <div class="grid-2" style="gap: 10px;">
                     <div><label>Cantidad recibida:</label><input type="number" id="compraCant" value="1"></div>
@@ -185,13 +181,13 @@
                     <input type="number" id="gastoMonto" placeholder="Monto $">
                     <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
                 </div>
+
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                    <h4>📥 Exportar Información</h4>
+                    <p style="font-size: 14px; color: #555;">Descarga el historial de todas las operaciones de venta en formato CSV, compatible con Excel.</p>
+                    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte de Ventas (.csv)</button>
+                </div>
             </div>
-        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 20px;">
-    <h4>📥 Exportar Información</h4>
-    <p style="font-size: 14px; color: #555;">Descarga el historial de todas las operaciones de venta en formato CSV, compatible con Excel.</p>
-    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte de Ventas (.csv)</button>
-</div>
-            
         </div>
     </div>
 
@@ -236,98 +232,65 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // 🚨 AQUÍ PEGA TUS CLAVES DE FIREBASE 🚨
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
   projectId: "pos-dlc-diaz",
   storageBucket: "pos-dlc-diaz.firebasestorage.app",
   messagingSenderId: "584151234669",
   appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
-};
+}
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         // Variables Globales en memoria
-        let productos = [];
-        let clientes = [];
-        let proveedores = [];
-        let ventas = [];
-        let gastos = [];
-        let carritoPOS = [];
-        let listaCompras = [];
+        let productos = []; let clientes = []; let proveedores = []; let ventas = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
 
-        // ==========================================
-        // 1. LISTENERS EN TIEMPO REAL (onSnapshot)
-        // ==========================================
-        
+        // --- LISTENERS EN TIEMPO REAL ---
         onSnapshot(collection(db, "productos"), (snap) => {
             productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas();
         });
-
         onSnapshot(collection(db, "clientes"), (snap) => {
             clientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']);
             poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador');
         });
-
         onSnapshot(collection(db, "proveedores"), (snap) => {
             proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']);
             poblarSelect('compraProveedorSelect', proveedores, 'nombre', '');
         });
+        onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); });
+        onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); });
 
-        onSnapshot(collection(db, "ventas"), (snap) => {
-            ventas = snap.docs.map(d => d.data());
-            calcularFinanzas();
-        });
-
-        onSnapshot(collection(db, "gastos"), (snap) => {
-            gastos = snap.docs.map(d => d.data());
-            calcularFinanzas();
-        });
-
-        // ==========================================
-        // 2. UTILIDADES GENERALES
-        // ==========================================
-
+        // --- UTILIDADES GLOBALES ---
         function renderTablaABM(idTabla, datos, campos) {
             const tbody = document.querySelector(`#${idTabla} tbody`);
             tbody.innerHTML = '';
             datos.forEach(item => {
-                let tr = '<tr>';
-                campos.forEach(c => tr += `<td>${item[c] || ''}</td>`);
-                tr += '</tr>';
+                let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>';
                 tbody.innerHTML += tr;
             });
         }
-
         function poblarSelect(idSelect, datos, campoTexto, opcionDefault) {
             const sel = document.getElementById(idSelect);
             sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : '';
-            datos.forEach(d => {
-                sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`;
-            });
+            datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; });
         }
 
         window.guardarEntidad = async function(coleccion) {
             let data = {};
-            if(coleccion === 'clientes') {
-                data = { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value };
-            } else {
-                data = { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
-            }
-
+            if(coleccion === 'clientes') { data = { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value }; } 
+            else { data = { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value }; }
             if(!data.nombre) return alert("El nombre es obligatorio");
             await addDoc(collection(db, coleccion), data);
             alert("Registro guardado exitosamente");
             document.querySelectorAll(`#${coleccion} input`).forEach(i => i.value = '');
         }
 
-        // ==========================================
-        // 3. MÓDULO INVENTARIO
-        // ==========================================
-        
+        // --- INVENTARIO ---
         window.guardarProducto = async function() {
             const data = {
                 categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value,
@@ -341,27 +304,18 @@
         }
 
         function renderInventario() {
-            const tbody = document.getElementById('tablaInventario');
-            tbody.innerHTML = '';
-            productos.forEach(p => {
-                tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`;
-            });
+            const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = '';
+            productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; });
         }
 
-        // ==========================================
-        // 4. MÓDULO PUNTO DE VENTA
-        // ==========================================
-
+        // --- PUNTO DE VENTA ---
         window.renderCatalogoPOS = function(filtro = '') {
-            const tbody = document.getElementById('tablaCatalogo');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = '';
             productos.forEach(p => {
                 if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){
-                    tbody.innerHTML += `<tr>
-                        <td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td>
+                    tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td>
                         <td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td>
-                        <td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td>
-                    </tr>`;
+                        <td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`;
                 }
             });
         }
@@ -374,28 +328,19 @@
             if(item) {
                 if(item.cant >= prod.stock) return alert("No hay más stock disponible");
                 item.cant++;
-            } else { 
-                carritoPOS.push({ ...prod, cant: 1 }); 
-            }
+            } else { carritoPOS.push({ ...prod, cant: 1 }); }
             window.renderCarrito();
         }
 
-        window.quitarDelCarritoPOS = function(id) {
-            carritoPOS = carritoPOS.filter(i => i.id !== id);
-            window.renderCarrito();
-        }
+        window.quitarDelCarritoPOS = function(id) { carritoPOS = carritoPOS.filter(i => i.id !== id); window.renderCarrito(); }
 
         window.renderCarrito = function() {
-            const tbody = document.getElementById('tablaCarrito');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = '';
             let subtotal = 0;
             carritoPOS.forEach(i => {
-                let importe = i.precio * i.cant;
-                subtotal += importe;
-                tbody.innerHTML += `<tr>
-                    <td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td>
-                    <td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td>
-                </tr>`;
+                let importe = i.precio * i.cant; subtotal += importe;
+                tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td>
+                    <td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`;
             });
             let desc = parseFloat(document.getElementById('descVenta').value) || 0;
             let total = subtotal - desc;
@@ -411,15 +356,9 @@
             const fecha = new Date().toLocaleString();
             let folio = Math.floor(Math.random() * 900000) + 100000;
 
-            // 1. Guardar en BD
             await addDoc(collection(db, "ventas"), { fecha, cliente, total, costo: costoTotal, descuento: desc, productos: carritoPOS });
-            
-            // 2. Descontar stock
-            for (let i of carritoPOS) {
-                await updateDoc(doc(db, "productos", i.id), { stock: i.stock - i.cant });
-            }
+            for (let i of carritoPOS) { await updateDoc(doc(db, "productos", i.id), { stock: i.stock - i.cant }); }
 
-            // 3. Buscar dirección del cliente para el ticket
             let dirCliente = "";
             if(cliente !== "Mostrador") {
                 let objCli = clientes.find(c => c.nombre === cliente);
@@ -432,10 +371,7 @@
             alert("Venta procesada");
         }
 
-        // ==========================================
-        // 5. MÓDULO COMPRAS (ENTRADAS)
-        // ==========================================
-
+        // --- COMPRAS ---
         function poblarSelectProductos() {
             const sel = document.getElementById('compraProductoSelect');
             sel.innerHTML = '<option value="">-- Selecciona un Producto --</option>';
@@ -445,22 +381,16 @@
         window.cargarDatosProductoCompra = function() {
             const id = document.getElementById('compraProductoSelect').value;
             const p = productos.find(x => x.id === id);
-            if(p) {
-                document.getElementById('compraCosto').value = p.costo;
-                document.getElementById('compraPrecio').value = p.precio;
-                document.getElementById('compraCant').value = 1;
-            }
+            if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; }
         }
 
         window.agregarACompra = function() {
             const id = document.getElementById('compraProductoSelect').value;
             const p = productos.find(x => x.id === id);
             if(!p) return alert("Selecciona un producto");
-            
             let cant = parseInt(document.getElementById('compraCant').value);
             let nCosto = parseFloat(document.getElementById('compraCosto').value);
             let nPrecio = parseFloat(document.getElementById('compraPrecio').value);
-            
             if(isNaN(cant) || isNaN(nCosto)) return;
             
             listaCompras.push({ id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto });
@@ -468,13 +398,9 @@
         }
 
         function renderListaCompras() {
-            const tbody = document.getElementById('tablaListaCompra');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = '';
             let total = 0;
-            listaCompras.forEach(i => {
-                total += i.subtotal;
-                tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`;
-            });
+            listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; });
             document.getElementById('totalCompra').innerText = `TOTAL COMPRA: $${total.toFixed(2)}`;
         }
 
@@ -483,68 +409,57 @@
             const prov = document.getElementById('compraProveedorSelect').value;
             if(!prov) return alert("Selecciona un proveedor");
             
-            let total = listaCompras.reduce((s, i) => s + i.subtotal, 0);
-            
-            // Registrar gasto de compra (Opcional, pero mantendremos la lógica en productos)
             for(let i of listaCompras) {
                 let pReal = productos.find(x => x.id === i.id);
-                // Actualiza stock, costo nuevo y precio nuevo
-                await updateDoc(doc(db, "productos", i.id), {
-                    stock: pReal.stock + i.cant, costo: i.costo, precio: i.precio
-                });
+                await updateDoc(doc(db, "productos", i.id), { stock: pReal.stock + i.cant, costo: i.costo, precio: i.precio });
             }
-            
-            listaCompras = []; renderListaCompras();
-            document.getElementById('compraProductoSelect').value = '';
-            alert("Inventario y precios actualizados exitosamente");
+            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = '';
+            alert("Inventario y precios actualizados");
         }
 
-        // ==========================================
-        // 6. MÓDULO FINANZAS
-        // ==========================================
-
+        // --- FINANZAS Y CSV ---
         window.guardarGasto = async function() {
-            let con = document.getElementById('gastoConcepto').value;
-            let mon = parseFloat(document.getElementById('gastoMonto').value);
+            let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value);
             if(!con || isNaN(mon)) return;
             await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon });
-            alert("Gasto Registrado");
-            document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = '';
+            alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = '';
         }
 
         function calcularFinanzas() {
             let totalVentas = 0; let totalCostosVenta = 0;
             ventas.forEach(v => { totalVentas += v.total; totalCostosVenta += v.costo; });
             
-            let totalGastos = 0;
-            gastos.forEach(g => { totalGastos += g.monto; });
+            let totalGastos = 0; gastos.forEach(g => { totalGastos += g.monto; });
             
-            let bruta = totalVentas - totalCostosVenta;
-            let neta = bruta - totalGastos;
-            
-            let valorInv = 0;
-            productos.forEach(p => { valorInv += (p.costo * p.stock); });
+            let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
+            let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); });
 
-            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`;
-            document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`;
-            document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`;
-            document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
-            
-            let kn = document.getElementById('kpiNeta');
-            kn.innerText = `$${neta.toFixed(2)}`;
-            kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
-            
+            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`;
+            document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
+            let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
             document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
         }
 
-        // ==========================================
-        // 7. GENERADOR DE PDF TÉRMICO (58mm)
-        // ==========================================
+        window.descargarCSV = function() {
+            if (ventas.length === 0) { alert("No hay ventas registradas."); return; }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Folio/Fecha,Cliente,Ingreso (Venta),Costo Mercancia,Utilidad Neta\n";
+            ventas.forEach(v => {
+                let utilidad = v.total - v.costo;
+                let fechaLimpia = v.fecha.replace(/,/g, ''); 
+                csvContent += `"${fechaLimpia}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Reporte_Ventas_DLCDiaz.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
 
+        // --- PDF Y GOOGLE DRIVE ---
         function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total) {
             const { jsPDF } = window.jspdf;
             
-            // Calculo de altura dinámica
             let alto_base = 80; 
             if(direccion) alto_base += 10;
             if(descuento > 0) alto_base += 10;
@@ -552,7 +467,6 @@
             
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_total] });
             
-            // Datos quemados del negocio (Personalización)
             doc.setFontSize(9); doc.setFont("helvetica", "bold");
             doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'});
             doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
@@ -580,7 +494,6 @@
             items.forEach(i => {
                 let nom = i.nombre.toUpperCase();
                 let fs = 8; doc.setFontSize(fs);
-                // Auto-ajuste de texto
                 while(doc.getTextWidth(nom) > 54 && fs > 5) { fs -= 0.5; doc.setFontSize(fs); }
                 doc.text(nom, 2, y); y += 4;
                 doc.setFontSize(8);
@@ -596,84 +509,42 @@
                 doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4;
             }
             
-           // ... (código de los productos y totales) ...
-        doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
-        
-        doc.setFontSize(7); doc.setFont("helvetica", "normal");
-        doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
-        
-        // 1. Descarga el archivo físicamente en tu computadora/celular
-        doc.save(`Ticket_${folio}.pdf`);
+            doc.setFontSize(11); doc.setFont("helvetica", "bold");
+            doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            
+            doc.setFontSize(7); doc.setFont("helvetica", "normal");
+            doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
+            
+            // 1. Descarga local
+            doc.save(`Ticket_${folio}.pdf`);
 
-        // 2. Extraer el PDF en formato Base64 para enviarlo a la nube
-        const pdfBase64 = doc.output('datauristring').split(',')[1];
+            // 2. Extraer Base64
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-        // 3. Enviar a Google Drive a través del puente
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFiyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
+            // 3. Enviar a Drive
+            // 🚨 AQUÍ PEGA TU URL DE APPS SCRIPT 🚨
+            const scriptURL = "https://script.google.com/macros/library/d/11mZCd8hN_w2_czODTG-i5BBkcTD2XGgOE6E0ypXGI40TERiakS3n2QVI/3";
 
-        fetch(scriptURL, {
-            method: 'POST',
-            body: JSON.stringify({
-                filename: `Ticket_${folio}.pdf`,
-                base64: pdfBase64
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ filename: `Ticket_${folio}.pdf`, base64: pdfBase64 })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === "success") {
-                console.log("PDF guardado en Drive exitosamente.");
-            } else {
-                console.error("Error al guardar en Drive:", data.message);
-            }
-        })
-        .catch(error => console.error("Error de conexión con Drive:", error));
-    }
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === "success") console.log("PDF guardado en Drive exitosamente.");
+                else console.error("Error al guardar en Drive:", data.message);
+            })
+            .catch(error => console.error("Error de conexión con Drive:", error));
         }
     </script>
 
     <script>
-        // Lógica simple para cambiar de pestañas visuales
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
         }
-
-        window.descargarCSV = function() {
-    if (ventas.length === 0) {
-        alert("No hay ventas registradas para descargar.");
-        return;
-    }
-
-    // Cabeceras de Excel
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Folio/Fecha,Cliente,Ingreso (Venta),Costo Mercancia,Utilidad Neta\n";
-
-    // Recorrer todas las ventas y crear las filas
-    ventas.forEach(v => {
-        let utilidad = v.total - v.costo;
-        // Limpiamos la fecha para evitar comas que rompan el formato CSV
-        let fechaLimpia = v.fecha.replace(/,/g, ''); 
-        
-        let fila = `"${fechaLimpia}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}`;
-        csvContent += fila + "\n";
-    });
-
-    // Crear el enlace invisible y forzar la descarga
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Reporte_Ventas_DLCDiaz.csv");
-    document.body.appendChild(link);
-    
-    link.click();
-    document.body.removeChild(link);
-}
     </script>
 </body>
 </html>
-
-
-
