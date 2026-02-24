@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Web - Distribuidora DLC Díaz</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .header { background-color: #003366; color: white; padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px;}
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; background: #ddd; border: none; cursor: pointer; font-weight: bold; margin-right: 5px; border-radius: 5px; }
+        .tab-btn.active { background: #003366; color: white; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .tab-content.active { display: block; }
+        
+        /* Layout del POS */
+        .pos-container { display: flex; gap: 20px; }
+        .catalogo, .ticket { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .btn { padding: 8px 12px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        .btn-danger { background: #dc3545; }
+        input { padding: 6px; margin: 5px 0; width: 90%; }
+        .totales { font-size: 1.2em; text-align: right; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Distribuidora de Papelería DLC Díaz - Sistema Cloud</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('pos')">🛒 Punto de Venta</button>
+        <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
+    </div>
+
+    <div id="pos" class="tab-content active">
+        <div class="pos-container">
+            <div class="catalogo">
+                <h3>Catálogo de Productos</h3>
+                <input type="text" id="buscarProd" placeholder="🔍 Buscar producto..." onkeyup="filtrarCatalogo()">
+                <table>
+                    <thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Acción</th></tr></thead>
+                    <tbody id="tablaCatalogo"></tbody>
+                </table>
+            </div>
+            
+            <div class="ticket">
+                <h3>🛒 Ticket de Venta</h3>
+                <input type="text" id="clienteNombre" placeholder="Nombre del Cliente (Opcional)">
+                <table>
+                    <thead><tr><th>Cant</th><th>Producto</th><th>Importe</th><th>X</th></tr></thead>
+                    <tbody id="tablaCarrito"></tbody>
+                </table>
+                <div class="totales" id="totalVenta">TOTAL: $0.00</div>
+                <button class="btn" style="width:100%; margin-top:15px; font-size:16px;" onclick="cobrar()">🖨️ COBRAR E IMPRIMIR TICKET</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventario" class="tab-content">
+        <h3>Registrar Nuevo Producto</h3>
+        <input type="text" id="invCat" placeholder="Categoría">
+        <input type="text" id="invNom" placeholder="Nombre del Producto">
+        <input type="number" id="invCosto" placeholder="Costo Compra $">
+        <input type="number" id="invPrecio" placeholder="Precio Venta $">
+        <input type="number" id="invStock" placeholder="Stock Inicial">
+        <button class="btn" onclick="guardarProducto()">Guardar Producto</button>
+
+        <h3 style="margin-top: 30px;">Inventario Actual</h3>
+        <table>
+            <thead><tr><th>Categoría</th><th>Nombre</th><th>Costo</th><th>Precio</th><th>Stock</th></tr></thead>
+            <tbody id="tablaInventario"></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // 🚨 REEMPLAZA ESTO CON TUS DATOS DE FIREBASE 🚨
+       const firebaseConfig = {
+  apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
+  authDomain: "pos-dlc-diaz.firebaseapp.com",
+  projectId: "pos-dlc-diaz",
+  storageBucket: "pos-dlc-diaz.firebasestorage.app",
+  messagingSenderId: "584151234669",
+  appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Variables Globales
+        let productos = [];
+        let carrito = [];
+
+        // --- FUNCIONES DE INVENTARIO ---
+        window.guardarProducto = async function() {
+            const cat = document.getElementById('invCat').value;
+            const nom = document.getElementById('invNom').value;
+            const costo = parseFloat(document.getElementById('invCosto').value);
+            const precio = parseFloat(document.getElementById('invPrecio').value);
+            const stock = parseInt(document.getElementById('invStock').value);
+
+            if(!nom || !precio) return alert("Faltan datos");
+
+            try {
+                await addDoc(collection(db, "productos"), {
+                    categoria: cat, nombre: nom, costo: costo, precio: precio, stock: stock
+                });
+                alert("Producto guardado en la nube ☁️");
+                document.querySelectorAll('#inventario input').forEach(i => i.value = '');
+            } catch (e) { console.error("Error: ", e); }
+        }
+
+        // Sincronización en tiempo real de Firebase a las Tablas
+        onSnapshot(collection(db, "productos"), (snapshot) => {
+            productos = [];
+            snapshot.forEach((doc) => {
+                productos.push({ id: doc.id, ...doc.data() });
+            });
+            renderInventario();
+            renderCatalogo();
+        });
+
+        function renderInventario() {
+            const tbody = document.getElementById('tablaInventario');
+            tbody.innerHTML = '';
+            productos.forEach(p => {
+                tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`;
+            });
+        }
+
+        window.renderCatalogo = function(filtro = '') {
+            const tbody = document.getElementById('tablaCatalogo');
+            tbody.innerHTML = '';
+            productos.forEach(p => {
+                if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){
+                    tbody.innerHTML += `<tr>
+                        <td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td>
+                        <td><button class="btn" onclick="agregarAlCarrito('${p.id}')">+</button></td>
+                    </tr>`;
+                }
+            });
+        }
+
+        window.filtrarCatalogo = function() {
+            renderCatalogo(document.getElementById('buscarProd').value);
+        }
+
+        // --- FUNCIONES DEL PUNTO DE VENTA ---
+        window.agregarAlCarrito = function(id) {
+            const prod = productos.find(p => p.id === id);
+            if(prod.stock <= 0) return alert("Sin stock");
+            
+            const item = carrito.find(i => i.id === id);
+            if(item) { item.cant++; } 
+            else { carrito.push({ ...prod, cant: 1 }); }
+            renderCarrito();
+        }
+
+        window.quitarDelCarrito = function(id) {
+            carrito = carrito.filter(i => i.id !== id);
+            renderCarrito();
+        }
+
+        function renderCarrito() {
+            const tbody = document.getElementById('tablaCarrito');
+            tbody.innerHTML = '';
+            let total = 0;
+            carrito.forEach(i => {
+                let importe = i.precio * i.cant;
+                total += importe;
+                tbody.innerHTML += `<tr>
+                    <td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td>
+                    <td><button class="btn btn-danger" onclick="quitarDelCarrito('${i.id}')">X</button></td>
+                </tr>`;
+            });
+            document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`;
+        }
+
+        window.cobrar = async function() {
+            if(carrito.length === 0) return;
+            const cliente = document.getElementById('clienteNombre').value || "Mostrador";
+            let total = carrito.reduce((sum, i) => sum + (i.precio * i.cant), 0);
+            let costoTotal = carrito.reduce((sum, i) => sum + (i.costo * i.cant), 0);
+            
+            const fecha = new Date().toLocaleString();
+            let reciboFolio = Math.floor(Math.random() * 1000000); // Folio temporal
+
+            // 1. Guardar Venta en Firebase
+            await addDoc(collection(db, "ventas"), {
+                fecha: fecha, cliente: cliente, total: total, costo: costoTotal, productos: carrito
+            });
+
+            // 2. Descontar Stock en Firebase
+            for (let i of carrito) {
+                const prodRef = doc(db, "productos", i.id);
+                await updateDoc(prodRef, { stock: i.stock - i.cant });
+            }
+
+            // 3. Generar PDF (58mm)
+            generarPDFTermico(reciboFolio, fecha, cliente, carrito, total);
+
+            carrito = [];
+            document.getElementById('clienteNombre').value = '';
+            renderCarrito();
+            alert("Venta procesada con éxito.");
+        }
+
+        function generarPDFTermico(folio, fecha, cliente, items, total) {
+            const { jsPDF } = window.jspdf;
+            // 58mm = aprox 2.28 pulgadas
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 150] });
+            
+            doc.setFontSize(10);
+            doc.text("PAPELERIA DLC DIAZ", 29, 10, {align: 'center'});
+            doc.setFontSize(8);
+            doc.text("Ixtapaluca, Edo. de México", 29, 15, {align: 'center'});
+            doc.text("Tel: 5574695533", 29, 19, {align: 'center'});
+            
+            doc.setFontSize(7);
+            doc.text(`Folio: ${folio}`, 2, 28);
+            doc.text(`Fecha: ${fecha}`, 2, 32);
+            doc.text(`Cliente: ${cliente}`, 2, 36);
+            
+            doc.text("---------------------------------------------------------", 2, 40);
+            doc.text("CANT   PRODUCTO            IMPORTE", 2, 44);
+            doc.text("---------------------------------------------------------", 2, 48);
+            
+            let y = 52;
+            items.forEach(i => {
+                doc.text(`${i.cant}`, 2, y);
+                doc.text(`${i.nombre.substring(0, 15)}`, 12, y);
+                doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 40, y);
+                y += 5;
+            });
+            
+            doc.text("---------------------------------------------------------", 2, y);
+            y += 5;
+            doc.setFontSize(10);
+            doc.text(`TOTAL: $${total.toFixed(2)}`, 2, y);
+            
+            doc.setFontSize(7);
+            doc.text("¡Gracias por su compra!", 29, y+10, {align: 'center'});
+            
+            doc.save(`Recibo_${folio}.pdf`);
+        }
+    </script>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
