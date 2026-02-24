@@ -186,6 +186,12 @@
                     <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
                 </div>
             </div>
+        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 20px;">
+    <h4>📥 Exportar Información</h4>
+    <p style="font-size: 14px; color: #555;">Descarga el historial de todas las operaciones de venta en formato CSV, compatible con Excel.</p>
+    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte de Ventas (.csv)</button>
+</div>
+            
         </div>
     </div>
 
@@ -608,6 +614,38 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
         }
+
+        window.descargarCSV = function() {
+    if (ventas.length === 0) {
+        alert("No hay ventas registradas para descargar.");
+        return;
+    }
+
+    // Cabeceras de Excel
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Folio/Fecha,Cliente,Ingreso (Venta),Costo Mercancia,Utilidad Neta\n";
+
+    // Recorrer todas las ventas y crear las filas
+    ventas.forEach(v => {
+        let utilidad = v.total - v.costo;
+        // Limpiamos la fecha para evitar comas que rompan el formato CSV
+        let fechaLimpia = v.fecha.replace(/,/g, ''); 
+        
+        let fila = `"${fechaLimpia}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}`;
+        csvContent += fila + "\n";
+    });
+
+    // Crear el enlace invisible y forzar la descarga
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Reporte_Ventas_DLCDiaz.csv");
+    document.body.appendChild(link);
+    
+    link.click();
+    document.body.removeChild(link);
+}
     </script>
 </body>
 </html>
+
