@@ -3,42 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Cloud - Distribuidora DLC Díaz</title>
+    <title>ERP Cloud - DLC Díaz</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#004080">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
         .header { background-color: #004080; color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header h1 { margin: 0; font-size: 24px; }
-        
         .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 12px 20px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 14px; }
         .tab-btn:hover { background: #d0d4dc; }
         .tab-btn.active { background: #004080; color: white; box-shadow: 0 4px 6px rgba(0,64,128,0.3); }
-        
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Layouts de 2 columnas */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
         th, td { border-bottom: 1px solid #ddd; padding: 12px 10px; text-align: left; }
         th { background-color: #f8f9fa; color: #555; }
         tr:hover { background-color: #f1f3f5; }
-        
         .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; transition: 0.2s; }
         .btn:hover { background: #218838; }
         .btn-danger { background: #dc3545; padding: 6px 10px; }
-        .btn-danger:hover { background: #c82333; }
         .btn-blue { background: #007bff; }
-        .btn-blue:hover { background: #0056b3; }
-        
         input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
         .totales { font-size: 1.4em; text-align: right; margin-top: 20px; font-weight: bold; color: #004080; }
-        
-        /* Tarjetas de Finanzas */
         .kpi-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #004080; margin-bottom: 15px; }
         .kpi-title { font-size: 14px; color: #666; margin-bottom: 5px; }
         .kpi-value { font-size: 24px; font-weight: bold; color: #333; }
@@ -55,7 +49,7 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="showTab('pos')">🛒 Punto de Venta</button>
         <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
-        <button class="tab-btn" onclick="showTab('compras')">📥 Compras (Entradas)</button>
+        <button class="tab-btn" onclick="showTab('compras')">📥 Compras</button>
         <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
         <button class="tab-btn" onclick="showTab('clientes')">👥 Clientes</button>
         <button class="tab-btn" onclick="showTab('proveedores')">🚚 Proveedores</button>
@@ -73,12 +67,9 @@
                     </table>
                 </div>
             </div>
-            
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
                 <h3>🛒 Ticket de Venta</h3>
-                <select id="clienteSelect">
-                    <option value="Mostrador">Público General / Mostrador</option>
-                </select>
+                <select id="clienteSelect"><option value="Mostrador">Público General / Mostrador</option></select>
                 <table>
                     <thead><tr><th>Cant</th><th>Producto</th><th>Importe</th><th></th></tr></thead>
                     <tbody id="tablaCarrito"></tbody>
@@ -119,25 +110,21 @@
                 <h3>Registrar Entrada de Mercancía</h3>
                 <select id="compraProveedorSelect"><option value="">-- Selecciona un Proveedor --</option></select>
                 <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()"><option value="">-- Selecciona un Producto --</option></select>
-                
                 <div class="grid-2" style="gap: 10px;">
                     <div><label>Cantidad recibida:</label><input type="number" id="compraCant" value="1"></div>
                     <div><label>Costo Unitario ($):</label><input type="number" id="compraCosto"></div>
                 </div>
-                <label>Actualizar Precio de Venta al público ($):</label>
-                <input type="number" id="compraPrecio">
-                
-                <button class="btn btn-blue" style="width: 100%;" onclick="agregarACompra()">Añadir a la lista de entrada</button>
+                <label>Actualizar Precio Venta ($):</label><input type="number" id="compraPrecio">
+                <button class="btn btn-blue" style="width: 100%;" onclick="agregarACompra()">Añadir a la lista</button>
             </div>
-            
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
                 <h3>📥 Resumen de Ingreso</h3>
                 <table>
-                    <thead><tr><th>Cant</th><th>Producto</th><th>Subtotal Costo</th></tr></thead>
+                    <thead><tr><th>Cant</th><th>Producto</th><th>Subtotal</th></tr></thead>
                     <tbody id="tablaListaCompra"></tbody>
                 </table>
                 <div class="totales" id="totalCompra">TOTAL COMPRA: $0.00</div>
-                <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA Y ACTUALIZAR STOCK</button>
+                <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA</button>
             </div>
         </div>
     </div>
@@ -145,47 +132,25 @@
     <div id="finanzas" class="tab-content">
         <div class="grid-2">
             <div>
-                <h3>📄 Estado de Resultados (P&L)</h3>
-                <div class="kpi-card">
-                    <div class="kpi-title">Ingresos por Ventas Totales</div>
-                    <div class="kpi-value text-green" id="kpiVentas">$0.00</div>
-                </div>
-                <div class="kpi-card" style="border-left-color: #dc3545;">
-                    <div class="kpi-title">Costo de la Mercancía Vendida</div>
-                    <div class="kpi-value text-red" id="kpiCostos">-$0.00</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-title">= Utilidad Bruta</div>
-                    <div class="kpi-value" id="kpiBruta">$0.00</div>
-                </div>
-                <div class="kpi-card" style="border-left-color: #dc3545;">
-                    <div class="kpi-title">Gastos Operativos (Renta, Luz, etc.)</div>
-                    <div class="kpi-value text-red" id="kpiGastos">-$0.00</div>
-                </div>
-                <div class="kpi-card" style="border-left-color: #28a745; background-color: #e8f5e9;">
-                    <div class="kpi-title">UTILIDAD NETA (Ganancia Real)</div>
-                    <div class="kpi-value text-green" id="kpiNeta" style="font-size: 32px;">$0.00</div>
-                </div>
+                <h3>📄 Estado de Resultados</h3>
+                <div class="kpi-card"><div class="kpi-title">Ingresos por Ventas</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
+                <div class="kpi-card" style="border-left-color: #dc3545;"><div class="kpi-title">Costo de Ventas</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
+                <div class="kpi-card"><div class="kpi-title">= Utilidad Bruta</div><div class="kpi-value" id="kpiBruta">$0.00</div></div>
+                <div class="kpi-card" style="border-left-color: #dc3545;"><div class="kpi-title">Gastos Operativos</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
+                <div class="kpi-card" style="border-left-color: #28a745; background-color: #e8f5e9;"><div class="kpi-title">UTILIDAD NETA</div><div class="kpi-value text-green" id="kpiNeta" style="font-size: 32px;">$0.00</div></div>
             </div>
-            
             <div>
-                <h3>⚖️ Balance y Registro de Gastos</h3>
-                <div class="kpi-card" style="border-left-color: #17a2b8;">
-                    <div class="kpi-title">Valor Actual del Inventario (Activo)</div>
-                    <div class="kpi-value" id="kpiInventario">$0.00</div>
-                </div>
-                
+                <h3>⚖️ Balance</h3>
+                <div class="kpi-card" style="border-left-color: #17a2b8;"><div class="kpi-title">Valor del Inventario</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                    <h4>Registrar Gasto Operativo</h4>
-                    <input type="text" id="gastoConcepto" placeholder="Concepto (ej. Pago de Luz)">
+                    <h4>Registrar Gasto</h4>
+                    <input type="text" id="gastoConcepto" placeholder="Concepto (Luz, Renta)">
                     <input type="number" id="gastoMonto" placeholder="Monto $">
                     <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
                 </div>
-
                 <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-top: 20px;">
                     <h4>📥 Exportar Información</h4>
-                    <p style="font-size: 14px; color: #555;">Descarga el historial de todas las operaciones de venta en formato CSV, compatible con Excel.</p>
-                    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte de Ventas (.csv)</button>
+                    <button class="btn btn-blue" onclick="descargarCSV()">Descargar Reporte (.csv)</button>
                 </div>
             </div>
         </div>
@@ -194,44 +159,38 @@
     <div id="clientes" class="tab-content">
         <div class="grid-2">
             <div>
-                <h3>Registrar Nuevo Cliente</h3>
-                <input type="text" id="cliNom" placeholder="Nombre / Papelería">
+                <h3>Nuevo Cliente</h3>
+                <input type="text" id="cliNom" placeholder="Nombre">
                 <input type="text" id="cliTel" placeholder="Teléfono">
-                <input type="text" id="cliDir" placeholder="Dirección Completa">
-                <input type="email" id="cliEmail" placeholder="Correo Electrónico">
+                <input type="text" id="cliDir" placeholder="Dirección">
+                <input type="email" id="cliEmail" placeholder="Email">
                 <button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar Cliente</button>
             </div>
         </div>
-        <h3 style="margin-top: 30px;">Directorio de Clientes</h3>
-        <table id="tablaClientes">
-            <thead><tr><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Email</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <h3 style="margin-top: 30px;">Directorio</h3>
+        <table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table>
     </div>
 
     <div id="proveedores" class="tab-content">
         <div class="grid-2">
             <div>
-                <h3>Registrar Nuevo Proveedor</h3>
-                <input type="text" id="provNom" placeholder="Empresa Proveedora">
+                <h3>Nuevo Proveedor</h3>
+                <input type="text" id="provNom" placeholder="Empresa">
                 <input type="text" id="provTel" placeholder="Teléfono">
                 <input type="text" id="provDir" placeholder="Dirección">
-                <input type="text" id="provContacto" placeholder="Nombre del Contacto (Agente)">
+                <input type="text" id="provContacto" placeholder="Contacto">
                 <button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar Proveedor</button>
             </div>
         </div>
-        <h3 style="margin-top: 30px;">Directorio de Proveedores</h3>
-        <table id="tablaProveedores">
-            <thead><tr><th>Empresa</th><th>Teléfono</th><th>Dirección</th><th>Contacto</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <h3 style="margin-top: 30px;">Directorio</h3>
+        <table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // 🚨 AQUÍ PEGA TUS CLAVES DE FIREBASE 🚨
+        // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
         const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
@@ -239,40 +198,21 @@
   storageBucket: "pos-dlc-diaz.firebasestorage.app",
   messagingSenderId: "584151234669",
   appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
-}
-
+};
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Variables Globales en memoria
         let productos = []; let clientes = []; let proveedores = []; let ventas = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
 
-        // --- LISTENERS EN TIEMPO REAL ---
-        onSnapshot(collection(db, "productos"), (snap) => {
-            productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas();
-        });
-        onSnapshot(collection(db, "clientes"), (snap) => {
-            clientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']);
-            poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador');
-        });
-        onSnapshot(collection(db, "proveedores"), (snap) => {
-            proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']);
-            poblarSelect('compraProveedorSelect', proveedores, 'nombre', '');
-        });
+        onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); });
+        onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); });
+        onSnapshot(collection(db, "proveedores"), (snap) => { proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']); poblarSelect('compraProveedorSelect', proveedores, 'nombre', ''); });
         onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); });
         onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); });
 
-        // --- UTILIDADES GLOBALES ---
         function renderTablaABM(idTabla, datos, campos) {
-            const tbody = document.querySelector(`#${idTabla} tbody`);
-            tbody.innerHTML = '';
-            datos.forEach(item => {
-                let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>';
-                tbody.innerHTML += tr;
-            });
+            const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = '';
+            datos.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; });
         }
         function poblarSelect(idSelect, datos, campoTexto, opcionDefault) {
             const sel = document.getElementById(idSelect);
@@ -280,27 +220,18 @@
             datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; });
         }
 
-        window.guardarEntidad = async function(coleccion) {
-            let data = {};
-            if(coleccion === 'clientes') { data = { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value }; } 
-            else { data = { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value }; }
-            if(!data.nombre) return alert("El nombre es obligatorio");
-            await addDoc(collection(db, coleccion), data);
-            alert("Registro guardado exitosamente");
-            document.querySelectorAll(`#${coleccion} input`).forEach(i => i.value = '');
+        window.guardarEntidad = async function(col) {
+            let data = col === 'clientes' 
+                ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } 
+                : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
+            if(!data.nombre) return alert("Nombre obligatorio");
+            await addDoc(collection(db, col), data); alert("Guardado exitosamente"); document.querySelectorAll(`#${col} input`).forEach(i => i.value = '');
         }
 
-        // --- INVENTARIO ---
         window.guardarProducto = async function() {
-            const data = {
-                categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value,
-                costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value),
-                stock: parseInt(document.getElementById('invStock').value)
-            };
-            if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos numéricos y el nombre.");
-            await addDoc(collection(db, "productos"), data);
-            alert("Producto creado");
-            document.querySelectorAll('#inventario input').forEach(i => i.value = '');
+            const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) };
+            if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos");
+            await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
         }
 
         function renderInventario() {
@@ -308,42 +239,28 @@
             productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; });
         }
 
-        // --- PUNTO DE VENTA ---
         window.renderCatalogoPOS = function(filtro = '') {
             const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = '';
             productos.forEach(p => {
                 if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){
-                    tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td>
-                        <td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td>
-                        <td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`;
+                    tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`;
                 }
             });
         }
         window.filtrarCatalogo = () => renderCatalogoPOS(document.getElementById('buscarProd').value);
 
         window.agregarCarritoPOS = function(id) {
-            const prod = productos.find(p => p.id === id);
-            if(prod.stock <= 0) return alert("Producto agotado");
+            const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Producto agotado");
             const item = carritoPOS.find(i => i.id === id);
-            if(item) {
-                if(item.cant >= prod.stock) return alert("No hay más stock disponible");
-                item.cant++;
-            } else { carritoPOS.push({ ...prod, cant: 1 }); }
+            if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); }
             window.renderCarrito();
         }
-
         window.quitarDelCarritoPOS = function(id) { carritoPOS = carritoPOS.filter(i => i.id !== id); window.renderCarrito(); }
 
         window.renderCarrito = function() {
-            const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = '';
-            let subtotal = 0;
-            carritoPOS.forEach(i => {
-                let importe = i.precio * i.cant; subtotal += importe;
-                tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td>
-                    <td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`;
-            });
-            let desc = parseFloat(document.getElementById('descVenta').value) || 0;
-            let total = subtotal - desc;
+            const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = ''; let subtotal = 0;
+            carritoPOS.forEach(i => { let importe = i.precio * i.cant; subtotal += importe; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td><td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`; });
+            let desc = parseFloat(document.getElementById('descVenta').value) || 0; let total = subtotal - desc;
             document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`;
             return { subtotal, desc, total };
         }
@@ -353,10 +270,16 @@
             const cliente = document.getElementById('clienteSelect').value;
             let { subtotal, desc, total } = window.renderCarrito();
             let costoTotal = carritoPOS.reduce((sum, i) => sum + (i.costo * i.cant), 0);
-            const fecha = new Date().toLocaleString();
-            let folio = Math.floor(Math.random() * 900000) + 100000;
+            
+            // --- NUEVO: CÁLCULO DE FOLIO ASCENDENTE ---
+            let maxFolio = 0;
+            ventas.forEach(v => { if (v.folio && v.folio > maxFolio) maxFolio = v.folio; });
+            let folio = maxFolio + 1;
 
-            await addDoc(collection(db, "ventas"), { fecha, cliente, total, costo: costoTotal, descuento: desc, productos: carritoPOS });
+            const fechaActual = new Date();
+            const fechaStr = fechaActual.toLocaleString();
+
+            await addDoc(collection(db, "ventas"), { folio: folio, fecha: fechaStr, cliente: cliente, total: total, costo: costoTotal, descuento: desc, productos: carritoPOS });
             for (let i of carritoPOS) { await updateDoc(doc(db, "productos", i.id), { stock: i.stock - i.cant }); }
 
             let dirCliente = "";
@@ -365,72 +288,59 @@
                 if(objCli) dirCliente = objCli.direccion;
             }
 
-            generarPDF(folio, fecha, cliente, dirCliente, carritoPOS, subtotal, desc, total);
+            // --- NUEVO: CÁLCULO DEL NOMBRE DEL ARCHIVO ---
+            let abreviatura = "MOS";
+            if(cliente !== "Mostrador") {
+                abreviatura = cliente.replace(/[^a-zA-Z0-9]/g, '').substring(0, 3).toUpperCase();
+            }
+            let dia = String(fechaActual.getDate()).padStart(2, '0');
+            let mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
+            let anio = fechaActual.getFullYear();
+            
+            let nombreArchivo = `Recibo-${abreviatura}_${dia}-${mes}-${anio}_${total.toFixed(2)}.pdf`;
+
+            generarPDF(folio, fechaStr, cliente, dirCliente, carritoPOS, subtotal, desc, total, nombreArchivo);
             
             carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito();
-            alert("Venta procesada");
+            alert(`Venta procesada. Folio: ${folio}`);
         }
 
         // --- COMPRAS ---
         function poblarSelectProductos() {
-            const sel = document.getElementById('compraProductoSelect');
-            sel.innerHTML = '<option value="">-- Selecciona un Producto --</option>';
+            const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Selecciona un Producto --</option>';
             productos.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; });
         }
-
         window.cargarDatosProductoCompra = function() {
-            const id = document.getElementById('compraProductoSelect').value;
-            const p = productos.find(x => x.id === id);
+            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value);
             if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; }
         }
-
         window.agregarACompra = function() {
-            const id = document.getElementById('compraProductoSelect').value;
-            const p = productos.find(x => x.id === id);
+            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value);
             if(!p) return alert("Selecciona un producto");
-            let cant = parseInt(document.getElementById('compraCant').value);
-            let nCosto = parseFloat(document.getElementById('compraCosto').value);
-            let nPrecio = parseFloat(document.getElementById('compraPrecio').value);
+            let cant = parseInt(document.getElementById('compraCant').value); let nCosto = parseFloat(document.getElementById('compraCosto').value); let nPrecio = parseFloat(document.getElementById('compraPrecio').value);
             if(isNaN(cant) || isNaN(nCosto)) return;
-            
-            listaCompras.push({ id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto });
-            renderListaCompras();
+            listaCompras.push({ id: p.id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto }); renderListaCompras();
         }
-
         function renderListaCompras() {
-            const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = '';
-            let total = 0;
+            const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = ''; let total = 0;
             listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; });
             document.getElementById('totalCompra').innerText = `TOTAL COMPRA: $${total.toFixed(2)}`;
         }
-
         window.finalizarCompra = async function() {
-            if(listaCompras.length === 0) return;
-            const prov = document.getElementById('compraProveedorSelect').value;
-            if(!prov) return alert("Selecciona un proveedor");
-            
-            for(let i of listaCompras) {
-                let pReal = productos.find(x => x.id === i.id);
-                await updateDoc(doc(db, "productos", i.id), { stock: pReal.stock + i.cant, costo: i.costo, precio: i.precio });
-            }
-            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = '';
-            alert("Inventario y precios actualizados");
+            if(listaCompras.length === 0 || !document.getElementById('compraProveedorSelect').value) return alert("Faltan datos");
+            for(let i of listaCompras) { let pReal = productos.find(x => x.id === i.id); await updateDoc(doc(db, "productos", i.id), { stock: pReal.stock + i.cant, costo: i.costo, precio: i.precio }); }
+            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Inventario actualizado");
         }
 
-        // --- FINANZAS Y CSV ---
+        // --- FINANZAS ---
         window.guardarGasto = async function() {
             let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value);
-            if(!con || isNaN(mon)) return;
-            await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon });
+            if(!con || isNaN(mon)) return; await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon });
             alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = '';
         }
-
         function calcularFinanzas() {
-            let totalVentas = 0; let totalCostosVenta = 0;
-            ventas.forEach(v => { totalVentas += v.total; totalCostosVenta += v.costo; });
-            
+            let totalVentas = 0; let totalCostosVenta = 0; ventas.forEach(v => { totalVentas += v.total; totalCostosVenta += v.costo; });
             let totalGastos = 0; gastos.forEach(g => { totalGastos += g.monto; });
-            
             let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
             let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); });
 
@@ -439,106 +349,77 @@
             let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
             document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
         }
-
         window.descargarCSV = function() {
-            if (ventas.length === 0) { alert("No hay ventas registradas."); return; }
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Folio/Fecha,Cliente,Ingreso (Venta),Costo Mercancia,Utilidad Neta\n";
+            if (ventas.length === 0) return alert("No hay ventas registradas.");
+            let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad Neta\n";
             ventas.forEach(v => {
-                let utilidad = v.total - v.costo;
-                let fechaLimpia = v.fecha.replace(/,/g, ''); 
-                csvContent += `"${fechaLimpia}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}\n`;
+                let utilidad = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); 
+                csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${utilidad.toFixed(2)}\n`;
             });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Reporte_Ventas_DLCDiaz.csv");
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // --- PDF Y GOOGLE DRIVE ---
-        function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total) {
+        // --- GENERAR PDF ---
+        function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total, nombreArchivoFinal) {
             const { jsPDF } = window.jspdf;
-            
-            let alto_base = 80; 
-            if(direccion) alto_base += 10;
-            if(descuento > 0) alto_base += 10;
-            let alto_total = alto_base + (items.length * 10);
-            
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_total] });
+            let alto_base = 80; if(direccion) alto_base += 10; if(descuento > 0) alto_base += 10;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_base + (items.length * 10)] });
             
             doc.setFontSize(9); doc.setFont("helvetica", "bold");
-            doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'});
-            doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
-            
+            doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
             doc.setFontSize(7); doc.setFont("helvetica", "normal");
-            doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'});
-            doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'});
-            doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
-            
+            doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
             doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
             
             let y = 31;
-            doc.text(`TICKET: ${folio}`, 2, y); y += 4;
-            doc.text(`FECHA: ${fecha}`, 2, y); y += 4;
-            doc.text(`CLIENTE: ${cliente.substring(0,25)}`, 2, y); y += 4;
+            doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; doc.text(`CLIENTE: ${cliente.substring(0,25)}`, 2, y); y += 4;
             if(direccion) { doc.text(`DIR: ${direccion.substring(0,30)}`, 2, y); y += 4; }
-            
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
             
-            doc.setFont("helvetica", "bold");
-            doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'});
-            doc.setFont("helvetica", "normal"); y+=2;
+            doc.setFont("helvetica", "bold"); doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'}); doc.setFont("helvetica", "normal"); y+=2;
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
 
             items.forEach(i => {
-                let nom = i.nombre.toUpperCase();
-                let fs = 8; doc.setFontSize(fs);
+                let nom = i.nombre.toUpperCase(); let fs = 8; doc.setFontSize(fs);
                 while(doc.getTextWidth(nom) > 54 && fs > 5) { fs -= 0.5; doc.setFontSize(fs); }
-                doc.text(nom, 2, y); y += 4;
-                doc.setFontSize(8);
-                doc.text(`${i.cant}`, 2, y);
-                doc.text(`$${i.precio.toFixed(2)}`, 15, y);
-                doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 56, y, {align: 'right'});
+                doc.text(nom, 2, y); y += 4; doc.setFontSize(8); doc.text(`${i.cant}`, 2, y); doc.text(`$${i.precio.toFixed(2)}`, 15, y); doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 56, y, {align: 'right'});
                 y += 2; doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 4;
             });
 
             y += 2;
-            if(descuento > 0) {
-                doc.text("SUBTOTAL:", 15, y); doc.text(`$${subtotal.toFixed(2)}`, 56, y, {align: 'right'}); y += 4;
-                doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4;
-            }
+            if(descuento > 0) { doc.text("SUBTOTAL:", 15, y); doc.text(`$${subtotal.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; }
             
-            doc.setFontSize(11); doc.setFont("helvetica", "bold");
-            doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
             
-            doc.setFontSize(7); doc.setFont("helvetica", "normal");
-            doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
-            
-            // 1. Descarga local
-            doc.save(`Ticket_${folio}.pdf`);
+            // 1. Descarga local con nuevo patrón de nombre
+            doc.save(nombreArchivoFinal);
 
             // 2. Extraer Base64
             const pdfBase64 = doc.output('datauristring').split(',')[1];
 
             // 3. Enviar a Drive
-            // 🚨 AQUÍ PEGA TU URL DE APPS SCRIPT 🚨
+            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
             const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({ filename: `Ticket_${folio}.pdf`, base64: pdfBase64 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === "success") console.log("PDF guardado en Drive exitosamente.");
-                else console.error("Error al guardar en Drive:", data.message);
-            })
-            .catch(error => console.error("Error de conexión con Drive:", error));
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) })
+            .then(res => res.json())
+            .then(data => { if(data.status === "success") console.log("PDF en Drive OK"); })
+            .catch(err => console.error("Error Drive:", err));
         }
     </script>
 
     <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('PWA Lista para instalarse', reg);
+                }).catch(err => {
+                    console.warn('Error en PWA', err);
+                });
+            });
+        }
+
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -548,4 +429,3 @@
     </script>
 </body>
 </html>
-
