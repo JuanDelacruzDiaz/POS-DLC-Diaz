@@ -21,15 +21,15 @@
         .login-box button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .login-box button:hover { background: #218838; }
 
-        /* APLICACIÓN PRINCIPAL (Oculta por defecto) */
+        /* APLICACIÓN PRINCIPAL */
         #app-container { display: none; padding: 20px; }
         
         .header { background-color: #004080; color: white; padding: 15px 20px; text-align: left; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 22px; }
         .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 12px 20px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 14px; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 15px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 13px; }
         .tab-btn.active { background: #004080; color: white; box-shadow: 0 4px 6px rgba(0,64,128,0.3); }
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
@@ -38,7 +38,7 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8f9fa; color: #555; }
         
@@ -77,8 +77,10 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('pos')">🛒 POS</button>
             <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
-            <button class="tab-btn" onclick="showTab('compras')">📥 Compras</button>
+            <button class="tab-btn" onclick="showTab('compras')">📥 Comprar a Proveedor</button>
             <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
+            <button class="tab-btn" onclick="showTab('historialVentas')">📜 Historial Ventas</button>
+            <button class="tab-btn" onclick="showTab('historialCompras')">📜 Historial Compras</button>
             <button class="tab-btn" onclick="showTab('clientes')">👥 Clientes</button>
             <button class="tab-btn" onclick="showTab('proveedores')">🚚 Proveedores</button>
         </div>
@@ -127,16 +129,16 @@
                     <select id="compraProductoSelect" onchange="cargarDatosProductoCompra()"><option value="">-- Producto --</option></select>
                     <div class="grid-2" style="gap:10px;">
                         <div><label>Cant:</label><input type="number" id="compraCant" value="1"></div>
-                        <div><label>Costo Nuevo $:</label><input type="number" id="compraCosto"></div>
+                        <div><label>Costo Unitario ($):</label><input type="number" id="compraCosto"></div>
                     </div>
-                    <label>Precio Público Nuevo $:</label><input type="number" id="compraPrecio">
+                    <label>Actualizar Precio Venta ($):</label><input type="number" id="compraPrecio">
                     <button class="btn btn-blue" style="width: 100%;" onclick="agregarACompra()">Añadir a lista</button>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
                     <h3>📥 Resumen</h3>
                     <table><thead><tr><th>Cant</th><th>Prod</th><th>Subtotal</th></tr></thead><tbody id="tablaListaCompra"></tbody></table>
                     <div class="totales" id="totalCompra">TOTAL: $0.00</div>
-                    <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA</button>
+                    <button class="btn" style="width:100%; margin-top:20px;" onclick="finalizarCompra()">✅ REGISTRAR COMPRA (Costo Promedio)</button>
                 </div>
             </div>
         </div>
@@ -165,6 +167,20 @@
                         <button class="btn btn-blue" onclick="descargarCSV()">Descargar Ventas CSV</button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="historialVentas" class="tab-content">
+            <h3>Historial de Ventas</h3>
+            <div style="overflow-x: auto;">
+                <table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table>
+            </div>
+        </div>
+
+        <div id="historialCompras" class="tab-content">
+            <h3>Historial de Compras a Proveedores</h3>
+            <div style="overflow-x: auto;">
+                <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table>
             </div>
         </div>
 
@@ -203,7 +219,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
   projectId: "pos-dlc-diaz",
@@ -212,23 +228,21 @@
   appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
 };
 
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Variables Globales
-        let productos = []; let clientes = []; let proveedores = []; let ventas = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
-        let unsubscribeFuncs = []; // Para detener las escuchas de la BD si cerramos sesión
+        let productos = []; let clientes = []; let proveedores = []; let ventas = []; let comprasHistorial = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
+        let unsubscribeFuncs = []; 
 
-        // --- SISTEMA DE AUTENTICACIÓN (LOGIN) ---
+        // --- SISTEMA DE LOGIN ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Usuario LOGUEADO: Ocultar login, mostrar app, cargar base de datos
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
                 iniciarBaseDeDatos();
             } else {
-                // Usuario NO LOGUEADO: Mostrar login, ocultar app, detener base de datos
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
                 detenerBaseDeDatos();
@@ -239,40 +253,25 @@
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPassword').value;
             document.getElementById('loginError').style.display = 'none';
-            
-            signInWithEmailAndPassword(auth, email, pass)
-                .then(() => { console.log("Sesión iniciada"); document.getElementById('loginPassword').value = ''; })
-                .catch((error) => { document.getElementById('loginError').style.display = 'block'; });
+            signInWithEmailAndPassword(auth, email, pass).then(() => { document.getElementById('loginPassword').value = ''; }).catch((error) => { document.getElementById('loginError').style.display = 'block'; });
         }
-
-        window.cerrarSesion = function() {
-            signOut(auth).then(() => { alert("Sesión cerrada correctamente"); });
-        }
+        window.cerrarSesion = function() { signOut(auth).then(() => { alert("Sesión cerrada correctamente"); }); }
 
         // --- CARGA DE BASE DE DATOS SECUENCIAL ---
         function iniciarBaseDeDatos() {
             unsubscribeFuncs.push(onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "proveedores"), (snap) => { proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']); poblarSelect('compraProveedorSelect', proveedores, 'nombre', ''); }));
-            unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); renderHistorialVentas(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "compras"), (snap) => { comprasHistorial = snap.docs.map(d => d.data()); renderHistorialCompras(); }));
         }
 
-        function detenerBaseDeDatos() {
-            unsubscribeFuncs.forEach(unsub => unsub());
-            unsubscribeFuncs = [];
-            productos = []; clientes = []; proveedores = []; ventas = []; gastos = [];
-        }
+        function detenerBaseDeDatos() { unsubscribeFuncs.forEach(unsub => unsub()); unsubscribeFuncs = []; productos = []; clientes = []; proveedores = []; ventas = []; gastos = []; comprasHistorial = []; }
 
         // --- UTILIDADES ---
-        function renderTablaABM(idTabla, datos, campos) {
-            const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = '';
-            datos.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; });
-        }
-        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) {
-            const sel = document.getElementById(idSelect); sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : '';
-            datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; });
-        }
+        function renderTablaABM(idTabla, datos, campos) { const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; datos.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); }
+        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { const sel = document.getElementById(idSelect); sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); }
 
         window.guardarEntidad = async function(col) {
             let data = col === 'clientes' ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
@@ -282,52 +281,29 @@
 
         window.guardarProducto = async function() {
             const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) };
-            if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos");
-            await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
+            if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos"); await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
         }
-        function renderInventario() {
-            const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = '';
-            productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; });
-        }
+        function renderInventario() { const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); }
 
         // --- POS ---
-        window.renderCatalogoPOS = function(filtro = '') {
-            const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = '';
-            productos.forEach(p => {
-                if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){
-                    tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`;
-                }
-            });
-        }
+        window.renderCatalogoPOS = function(filtro = '') { const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = ''; productos.forEach(p => { if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){ tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`; } }); }
         window.filtrarCatalogo = () => renderCatalogoPOS(document.getElementById('buscarProd').value);
 
-        window.agregarCarritoPOS = function(id) {
-            const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Agotado");
-            const item = carritoPOS.find(i => i.id === id);
-            if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); }
-            window.renderCarrito();
-        }
+        window.agregarCarritoPOS = function(id) { const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Agotado"); const item = carritoPOS.find(i => i.id === id); if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); } window.renderCarrito(); }
         window.quitarDelCarritoPOS = function(id) { carritoPOS = carritoPOS.filter(i => i.id !== id); window.renderCarrito(); }
 
         window.renderCarrito = function() {
             const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = ''; let subtotal = 0;
             carritoPOS.forEach(i => { let importe = i.precio * i.cant; subtotal += importe; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td><td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`; });
-            let desc = parseFloat(document.getElementById('descVenta').value) || 0; let total = subtotal - desc;
-            document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`;
-            return { subtotal, desc, total };
+            let desc = parseFloat(document.getElementById('descVenta').value) || 0; let total = subtotal - desc; document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`; return { subtotal, desc, total };
         }
 
         window.cobrar = async function() {
-            if(carritoPOS.length === 0) return;
-            const cliente = document.getElementById('clienteSelect').value;
-            let { subtotal, desc, total } = window.renderCarrito();
-            let costoTotal = carritoPOS.reduce((sum, i) => sum + (i.costo * i.cant), 0);
-            
-            let maxFolio = 0; ventas.forEach(v => { if (v.folio && v.folio > maxFolio) maxFolio = v.folio; });
-            let folio = maxFolio + 1;
+            if(carritoPOS.length === 0) return; const cliente = document.getElementById('clienteSelect').value; let { subtotal, desc, total } = window.renderCarrito(); let costoTotal = carritoPOS.reduce((sum, i) => sum + (i.costo * i.cant), 0);
+            let maxFolio = 0; ventas.forEach(v => { if (v.folio && v.folio > maxFolio) maxFolio = v.folio; }); let folio = maxFolio + 1;
             const fechaActual = new Date(); const fechaStr = fechaActual.toLocaleString();
 
-            await addDoc(collection(db, "ventas"), { folio: folio, fecha: fechaStr, cliente: cliente, total: total, costo: costoTotal, descuento: desc, productos: carritoPOS });
+            await addDoc(collection(db, "ventas"), { folio: folio, fecha: fechaStr, timestamp: fechaActual.getTime(), cliente: cliente, total: total, costo: costoTotal, descuento: desc, productos: carritoPOS });
             for (let i of carritoPOS) { await updateDoc(doc(db, "productos", i.id), { stock: i.stock - i.cant }); }
 
             let dirCliente = ""; if(cliente !== "Mostrador") { let objCli = clientes.find(c => c.nombre === cliente); if(objCli) dirCliente = objCli.direccion; }
@@ -339,7 +315,7 @@
             carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); alert(`Venta procesada. Folio: ${folio}`);
         }
 
-        // --- COMPRAS ---
+        // --- COMPRAS (CON COSTO PROMEDIO PONDERADO) ---
         function poblarSelectProductos() { const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; productos.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); }
         window.cargarDatosProductoCompra = function() { const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; } }
         window.agregarACompra = function() {
@@ -353,10 +329,51 @@
             listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; });
             document.getElementById('totalCompra').innerText = `TOTAL: $${total.toFixed(2)}`;
         }
+        
         window.finalizarCompra = async function() {
-            if(listaCompras.length === 0 || !document.getElementById('compraProveedorSelect').value) return alert("Faltan datos");
-            for(let i of listaCompras) { let pReal = productos.find(x => x.id === i.id); await updateDoc(doc(db, "productos", i.id), { stock: pReal.stock + i.cant, costo: i.costo, precio: i.precio }); }
-            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Inventario actualizado");
+            const prov = document.getElementById('compraProveedorSelect').value;
+            if(listaCompras.length === 0 || !prov) return alert("Faltan datos");
+            
+            let totalCompraGral = 0;
+            for(let i of listaCompras) { 
+                let pReal = productos.find(x => x.id === i.id); 
+                
+                // LÓGICA DE COSTO PROMEDIO PONDERADO
+                let stockAnt = pReal.stock; 
+                let costoAnt = pReal.costo;
+                let valorViejo = stockAnt * costoAnt; 
+                let valorNuevo = i.cant * i.costo;
+                let stockTotal = stockAnt + i.cant;
+                
+                let nuevoCosto = stockTotal > 0 ? (valorViejo + valorNuevo) / stockTotal : costoAnt;
+                
+                await updateDoc(doc(db, "productos", i.id), { stock: stockTotal, costo: nuevoCosto, precio: i.precio }); 
+                totalCompraGral += i.subtotal;
+            }
+
+            // Guardar en el historial de compras
+            await addDoc(collection(db, "compras"), { fecha: new Date().toLocaleString(), timestamp: new Date().getTime(), proveedor: prov, total: totalCompraGral, productos: listaCompras });
+
+            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada. Inventario y Costos Promediados correctamente.");
+        }
+
+        // --- HISTORIALES ---
+        function renderHistorialVentas() {
+            const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = '';
+            let ventasOrdenadas = [...ventas].sort((a,b) => b.timestamp - a.timestamp);
+            ventasOrdenadas.forEach(v => {
+                let detalles = v.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ");
+                tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha}</td><td>${v.cliente}</td><td>${detalles}</td><td>$${(v.descuento || 0).toFixed(2)}</td><td style="font-weight:bold; color:green;">$${v.total.toFixed(2)}</td></tr>`;
+            });
+        }
+
+        function renderHistorialCompras() {
+            const tbody = document.getElementById('tablaHistorialCompras'); tbody.innerHTML = '';
+            let comprasOrdenadas = [...comprasHistorial].sort((a,b) => b.timestamp - a.timestamp);
+            comprasOrdenadas.forEach(c => {
+                let detalles = c.productos ? c.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ") : "N/A";
+                tbody.innerHTML += `<tr><td>${c.fecha}</td><td>${c.proveedor}</td><td>${detalles}</td><td style="font-weight:bold; color:blue;">$${c.total.toFixed(2)}</td></tr>`;
+            });
         }
 
         // --- FINANZAS ---
