@@ -215,11 +215,11 @@
         </div>
     </div> <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
-        const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
   projectId: "pos-dlc-diaz",
@@ -227,7 +227,6 @@
   messagingSenderId: "584151234669",
   appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
 };
-
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -269,9 +268,21 @@
 
         function detenerBaseDeDatos() { unsubscribeFuncs.forEach(unsub => unsub()); unsubscribeFuncs = []; productos = []; clientes = []; proveedores = []; ventas = []; gastos = []; comprasHistorial = []; }
 
-        // --- UTILIDADES ---
-        function renderTablaABM(idTabla, datos, campos) { const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; datos.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); }
-        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { const sel = document.getElementById(idSelect); sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; datos.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); }
+        // --- UTILIDADES (CON ORDENAMIENTO ALFABÉTICO) ---
+        function renderTablaABM(idTabla, datos, campos) { 
+            const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; 
+            // Ordenar tabla alfabéticamente por la primera columna
+            let datosOrd = [...datos].sort((a,b) => (a[campos[0]] || '').toString().localeCompare((b[campos[0]] || '').toString()));
+            datosOrd.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); 
+        }
+        
+        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { 
+            const sel = document.getElementById(idSelect); 
+            sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; 
+            // Ordenar select alfabéticamente
+            let datosOrd = [...datos].sort((a,b) => (a[campoTexto] || '').toString().localeCompare((b[campoTexto] || '').toString()));
+            datosOrd.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); 
+        }
 
         window.guardarEntidad = async function(col) {
             let data = col === 'clientes' ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
@@ -283,10 +294,20 @@
             const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) };
             if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos"); await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
         }
-        function renderInventario() { const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; productos.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); }
+        
+        function renderInventario() { 
+            const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; 
+            // Ordenar inventario visual alfabéticamente
+            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            prodOrd.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); 
+        }
 
         // --- POS ---
-        window.renderCatalogoPOS = function(filtro = '') { const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = ''; productos.forEach(p => { if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){ tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`; } }); }
+        window.renderCatalogoPOS = function(filtro = '') { 
+            const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = ''; 
+            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            prodOrd.forEach(p => { if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){ tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`; } }); 
+        }
         window.filtrarCatalogo = () => renderCatalogoPOS(document.getElementById('buscarProd').value);
 
         window.agregarCarritoPOS = function(id) { const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Agotado"); const item = carritoPOS.find(i => i.id === id); if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); } window.renderCarrito(); }
@@ -316,7 +337,12 @@
         }
 
         // --- COMPRAS (CON COSTO PROMEDIO PONDERADO) ---
-        function poblarSelectProductos() { const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; productos.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); }
+        function poblarSelectProductos() { 
+            const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; 
+            // Select de compras ordenado alfabéticamente
+            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            prodOrd.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); 
+        }
         window.cargarDatosProductoCompra = function() { const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; } }
         window.agregarACompra = function() {
             const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(!p) return alert("Selecciona producto");
@@ -337,24 +363,15 @@
             let totalCompraGral = 0;
             for(let i of listaCompras) { 
                 let pReal = productos.find(x => x.id === i.id); 
-                
-                // LÓGICA DE COSTO PROMEDIO PONDERADO
-                let stockAnt = pReal.stock; 
-                let costoAnt = pReal.costo;
-                let valorViejo = stockAnt * costoAnt; 
-                let valorNuevo = i.cant * i.costo;
+                let stockAnt = pReal.stock; let costoAnt = pReal.costo;
+                let valorViejo = stockAnt * costoAnt; let valorNuevo = i.cant * i.costo;
                 let stockTotal = stockAnt + i.cant;
-                
                 let nuevoCosto = stockTotal > 0 ? (valorViejo + valorNuevo) / stockTotal : costoAnt;
-                
                 await updateDoc(doc(db, "productos", i.id), { stock: stockTotal, costo: nuevoCosto, precio: i.precio }); 
                 totalCompraGral += i.subtotal;
             }
-
-            // Guardar en el historial de compras
             await addDoc(collection(db, "compras"), { fecha: new Date().toLocaleString(), timestamp: new Date().getTime(), proveedor: prov, total: totalCompraGral, productos: listaCompras });
-
-            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada. Inventario y Costos Promediados correctamente.");
+            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada y costos promediados.");
         }
 
         // --- HISTORIALES ---
@@ -366,7 +383,6 @@
                 tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha}</td><td>${v.cliente}</td><td>${detalles}</td><td>$${(v.descuento || 0).toFixed(2)}</td><td style="font-weight:bold; color:green;">$${v.total.toFixed(2)}</td></tr>`;
             });
         }
-
         function renderHistorialCompras() {
             const tbody = document.getElementById('tablaHistorialCompras'); tbody.innerHTML = '';
             let comprasOrdenadas = [...comprasHistorial].sort((a,b) => b.timestamp - a.timestamp);
@@ -398,15 +414,34 @@
         // --- PDF Y DRIVE ---
         function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total, nombreArchivoFinal) {
             const { jsPDF } = window.jspdf;
-            let alto_base = 80; if(direccion) alto_base += 10; if(descuento > 0) alto_base += 10;
+            
+            // CÁLCULO DINÁMICO DE ALTURA DEL RECIBO
+            let lineasExtra = 0;
+            if (cliente && cliente.length > 25) lineasExtra += 1;
+            if (direccion) lineasExtra += Math.ceil(direccion.length / 30);
+            
+            let alto_base = 80 + (lineasExtra * 4); 
+            if(descuento > 0) alto_base += 10;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_base + (items.length * 10)] });
             
             doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
             doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
             doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
             
-            let y = 31; doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; doc.text(`CLIENTE: ${cliente.substring(0,25)}`, 2, y); y += 4;
-            if(direccion) { doc.text(`DIR: ${direccion.substring(0,30)}`, 2, y); y += 4; }
+            let y = 31; 
+            doc.text(`TICKET: ${folio}`, 2, y); y += 4; 
+            doc.text(`FECHA: ${fecha}`, 2, y); y += 4; 
+            
+            // AJUSTE MULTILÍNEA PARA CLIENTE
+            let textCliente = doc.splitTextToSize(`CLIENTE: ${cliente}`, 54);
+            doc.text(textCliente, 2, y); y += (textCliente.length * 3.5) + 0.5;
+            
+            // AJUSTE MULTILÍNEA PARA DIRECCIÓN
+            if(direccion) { 
+                let textDir = doc.splitTextToSize(`DIR: ${direccion}`, 54);
+                doc.text(textDir, 2, y); y += (textDir.length * 3.5) + 0.5;
+            }
+            
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
             doc.setFont("helvetica", "bold"); doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'}); doc.setFont("helvetica", "normal"); y+=2;
             doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
