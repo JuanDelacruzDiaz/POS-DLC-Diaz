@@ -263,13 +263,13 @@
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
         const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "tu-proyecto.firebaseapp.com",
-            projectId: "tu-proyecto",
-            storageBucket: "tu-proyecto.appspot.com",
-            messagingSenderId: "TUS_NUMEROS",
-            appId: "TU_APP_ID"
-        };
+  apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
+  authDomain: "pos-dlc-diaz.firebaseapp.com",
+  projectId: "pos-dlc-diaz",
+  storageBucket: "pos-dlc-diaz.firebasestorage.app",
+  messagingSenderId: "584151234669",
+  appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -514,7 +514,7 @@
             // Subir corte de caja a Drive también (Opcional, pero muy recomendado)
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
-            const scriptURL = "https://script.google.com/macros/s/TU_CODIGO_AQUI/exec";
+            const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nomArchivo, base64: pdfBase64 }) }).catch(err => console.log(err));
         }
 
@@ -599,3 +599,4 @@
     </script>
 </body>
 </html>
+
