@@ -13,7 +13,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
         
-        /* PANTALLA DE LOGIN */
+        /* LOGIN */
         #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #004080; }
         .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
         .login-box h2 { color: #004080; margin-bottom: 20px; }
@@ -21,7 +21,7 @@
         .login-box button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .login-box button:hover { background: #218838; }
 
-        /* APLICACIÓN PRINCIPAL */
+        /* APP */
         #app-container { display: none; padding: 20px; }
         
         .header { background-color: #004080; color: white; padding: 15px 20px; text-align: left; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
@@ -45,6 +45,7 @@
         .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; }
         .btn-danger { background: #dc3545; padding: 6px 10px; }
         .btn-blue { background: #007bff; }
+        .btn-purple { background: #6f42c1; color: white; }
         input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         .totales { font-size: 1.4em; text-align: right; margin-top: 20px; font-weight: bold; color: #004080; }
         
@@ -53,6 +54,9 @@
         .kpi-value { font-size: 24px; font-weight: bold; color: #333; }
         .text-green { color: #28a745 !important; }
         .text-red { color: #dc3545 !important; }
+        
+        .corte-container { background: #fff3cd; padding: 25px; border-radius: 10px; border: 2px dashed #ffc107; text-align: center; }
+        .corte-resumen { font-size: 18px; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -78,7 +82,8 @@
             <button class="tab-btn active" onclick="showTab('pos')">🛒 POS</button>
             <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
             <button class="tab-btn" onclick="showTab('compras')">📥 Comprar a Proveedor</button>
-            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
+            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas (Analítica)</button>
+            <button class="tab-btn" onclick="showTab('corteCaja')" style="background-color: #ffc107; color: #000;">💰 Corte Diario</button>
             <button class="tab-btn" onclick="showTab('historialVentas')">📜 Historial Ventas</button>
             <button class="tab-btn" onclick="showTab('historialCompras')">📜 Historial Compras</button>
             <button class="tab-btn" onclick="showTab('clientes')">👥 Clientes</button>
@@ -144,44 +149,82 @@
         </div>
 
         <div id="finanzas" class="tab-content">
+            <div style="background: #e4e6eb; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <h3 style="margin: 0;">Filtro de Análisis:</h3>
+                <select id="filtroTiempoFinanzas" onchange="calcularFinanzas()" style="width: 250px; margin: 0; font-weight: bold;">
+                    <option value="hoy">📅 Solo Hoy</option>
+                    <option value="semana">📅 Esta Semana</option>
+                    <option value="mes">📅 Este Mes</option>
+                    <option value="todo" selected>📊 Todo el Histórico Total</option>
+                </select>
+            </div>
+
             <div class="grid-2">
                 <div>
-                    <h3>📄 Estado de Resultados</h3>
-                    <div class="kpi-card"><div class="kpi-title">Ingresos</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
-                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Costo Mercancía</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
+                    <h3>📄 Estado de Resultados del Periodo</h3>
+                    <div class="kpi-card"><div class="kpi-title">Ingresos por Ventas</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Costo de la Mercancía Vendida</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
                     <div class="kpi-card"><div class="kpi-title">= Utilidad Bruta</div><div class="kpi-value" id="kpiBruta">$0.00</div></div>
-                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Gastos Op.</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
-                    <div class="kpi-card" style="border-left-color:#28a745; background-color:#e8f5e9;"><div class="kpi-title">UTILIDAD NETA</div><div class="kpi-value text-green" id="kpiNeta" style="font-size:32px;">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Gastos Operativos Registrados</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#28a745; background-color:#e8f5e9;"><div class="kpi-title">UTILIDAD NETA DEL PERIODO</div><div class="kpi-value text-green" id="kpiNeta" style="font-size:32px;">$0.00</div></div>
                 </div>
                 <div>
-                    <h3>⚖️ Balance y Exportación</h3>
-                    <div class="kpi-card" style="border-left-color:#17a2b8;"><div class="kpi-title">Valor Inventario</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
+                    <h3>⚖️ Balance y Registro</h3>
+                    <div class="kpi-card" style="border-left-color:#17a2b8;"><div class="kpi-title">Inversión en Compras (Periodo)</div><div class="kpi-value" id="kpiComprasPer">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#17a2b8; background-color: #e3f2fd;"><div class="kpi-title">Valor Actual del Inventario Total (No filtrable)</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
+                    
                     <div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-top:20px;">
-                        <h4>Gasto Operativo</h4>
-                        <input type="text" id="gastoConcepto" placeholder="Concepto">
+                        <h4>Registrar Gasto Operativo</h4>
+                        <input type="text" id="gastoConcepto" placeholder="Concepto (ej. Pago de Luz)">
                         <input type="number" id="gastoMonto" placeholder="Monto $">
-                        <button class="btn btn-danger" onclick="guardarGasto()">Registrar</button>
+                        <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
                     </div>
                     <div style="background:#e8f5e9; padding:20px; border-radius:8px; margin-top:20px;">
-                        <h4>📥 Reportes</h4>
-                        <button class="btn btn-blue" onclick="descargarCSV()">Descargar Ventas CSV</button>
+                        <h4>📥 Exportar Información</h4>
+                        <button class="btn btn-blue" onclick="descargarCSV()">Descargar Historial Total CSV</button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="corteCaja" class="tab-content">
+            <div class="corte-container">
+                <h2>💰 Corte de Caja Diario (Día de Hoy)</h2>
+                <p>Calcula el flujo de efectivo que debe haber en la caja registradora en este momento.</p>
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+                    <h3 style="margin: 0;">Fondo Inicial (Con cuánto abriste): $</h3>
+                    <input type="number" id="fondoCaja" value="0" onkeyup="calcularCorteDiario()" onchange="calcularCorteDiario()" style="width: 150px; font-size: 18px; font-weight: bold; text-align: center; margin: 0;">
+                </div>
+
+                <div class="grid-2" style="margin-top: 30px; text-align: left;">
+                    <div class="kpi-card" style="background: white;">
+                        <div class="kpi-title">Ingresos en Efectivo (Ventas Hoy)</div>
+                        <div class="kpi-value text-green" id="corteVentasHoy">+$0.00</div>
+                    </div>
+                    <div class="kpi-card" style="background: white; border-left-color:#dc3545;">
+                        <div class="kpi-title">Retiros de Caja (Gastos Hoy)</div>
+                        <div class="kpi-value text-red" id="corteGastosHoy">-$0.00</div>
+                    </div>
+                </div>
+
+                <div style="background: #d4edda; padding: 20px; border-radius: 8px; border: 2px solid #28a745; margin-top: 20px;">
+                    <div style="font-size: 18px; color: #155724; font-weight: bold;">Efectivo Total Esperado en Caja:</div>
+                    <div style="font-size: 48px; font-weight: bold; color: #155724; margin: 10px 0;" id="corteTotalEsperado">$0.00</div>
+                </div>
+
+                <button class="btn btn-purple" style="margin-top: 20px; width: 100%; font-size: 18px;" onclick="imprimirCorte()">🖨️ IMPRIMIR TICKET DE CORTE DE CAJA</button>
             </div>
         </div>
 
         <div id="historialVentas" class="tab-content">
             <h3>Historial de Ventas</h3>
-            <div style="overflow-x: auto;">
-                <table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table>
-            </div>
+            <div style="overflow-x: auto;"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table></div>
         </div>
 
         <div id="historialCompras" class="tab-content">
             <h3>Historial de Compras a Proveedores</h3>
-            <div style="overflow-x: auto;">
-                <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table>
-            </div>
+            <div style="overflow-x: auto;"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table></div>
         </div>
 
         <div id="clientes" class="tab-content">
@@ -219,14 +262,14 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
-       const firebaseConfig = {
-  apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
-  authDomain: "pos-dlc-diaz.firebaseapp.com",
-  projectId: "pos-dlc-diaz",
-  storageBucket: "pos-dlc-diaz.firebasestorage.app",
-  messagingSenderId: "584151234669",
-  appId: "1:584151234669:web:25fcfd3da16d0ca4cb2764"
-};
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "TUS_NUMEROS",
+            appId: "TU_APP_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -254,32 +297,29 @@
             document.getElementById('loginError').style.display = 'none';
             signInWithEmailAndPassword(auth, email, pass).then(() => { document.getElementById('loginPassword').value = ''; }).catch((error) => { document.getElementById('loginError').style.display = 'block'; });
         }
-        window.cerrarSesion = function() { signOut(auth).then(() => { alert("Sesión cerrada correctamente"); }); }
+        window.cerrarSesion = function() { signOut(auth).then(() => { alert("Sesión cerrada"); }); }
 
         // --- CARGA DE BASE DE DATOS SECUENCIAL ---
         function iniciarBaseDeDatos() {
             unsubscribeFuncs.push(onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "proveedores"), (snap) => { proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaProveedores', proveedores, ['nombre', 'telefono', 'direccion', 'contacto']); poblarSelect('compraProveedorSelect', proveedores, 'nombre', ''); }));
-            unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); renderHistorialVentas(); }));
-            unsubscribeFuncs.push(onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); }));
-            unsubscribeFuncs.push(onSnapshot(collection(db, "compras"), (snap) => { comprasHistorial = snap.docs.map(d => d.data()); renderHistorialCompras(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => d.data()); calcularFinanzas(); renderHistorialVentas(); calcularCorteDiario(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); calcularCorteDiario(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "compras"), (snap) => { comprasHistorial = snap.docs.map(d => d.data()); renderHistorialCompras(); calcularFinanzas(); }));
         }
 
         function detenerBaseDeDatos() { unsubscribeFuncs.forEach(unsub => unsub()); unsubscribeFuncs = []; productos = []; clientes = []; proveedores = []; ventas = []; gastos = []; comprasHistorial = []; }
 
-        // --- UTILIDADES (CON ORDENAMIENTO ALFABÉTICO) ---
+        // --- UTILIDADES GLOBALES (ORDEN ALFABÉTICO) ---
         function renderTablaABM(idTabla, datos, campos) { 
             const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; 
-            // Ordenar tabla alfabéticamente por la primera columna
             let datosOrd = [...datos].sort((a,b) => (a[campos[0]] || '').toString().localeCompare((b[campos[0]] || '').toString()));
             datosOrd.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); 
         }
-        
         function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { 
             const sel = document.getElementById(idSelect); 
             sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; 
-            // Ordenar select alfabéticamente
             let datosOrd = [...datos].sort((a,b) => (a[campoTexto] || '').toString().localeCompare((b[campoTexto] || '').toString()));
             datosOrd.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); 
         }
@@ -294,10 +334,8 @@
             const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) };
             if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos"); await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
         }
-        
         function renderInventario() { 
             const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; 
-            // Ordenar inventario visual alfabéticamente
             let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
             prodOrd.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); 
         }
@@ -336,10 +374,9 @@
             carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); alert(`Venta procesada. Folio: ${folio}`);
         }
 
-        // --- COMPRAS (CON COSTO PROMEDIO PONDERADO) ---
+        // --- COMPRAS (COSTO PROMEDIO) ---
         function poblarSelectProductos() { 
             const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; 
-            // Select de compras ordenado alfabéticamente
             let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
             prodOrd.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); 
         }
@@ -371,10 +408,117 @@
                 totalCompraGral += i.subtotal;
             }
             await addDoc(collection(db, "compras"), { fecha: new Date().toLocaleString(), timestamp: new Date().getTime(), proveedor: prov, total: totalCompraGral, productos: listaCompras });
-            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada y costos promediados.");
+            listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada y promediada.");
         }
 
-        // --- HISTORIALES ---
+        // --- FINANZAS AVANZADAS Y FILTROS DE TIEMPO ---
+        window.guardarGasto = async function() { 
+            let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); 
+            if(!con || isNaN(mon)) return; 
+            let d = new Date();
+            await addDoc(collection(db, "gastos"), { fecha: d.toLocaleString(), timestamp: d.getTime(), concepto: con, monto: mon }); 
+            alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = ''; 
+        }
+
+        function getInicioDia() { let d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+        function getInicioSemana() { let d = new Date(); let day = d.getDay()||7; if(day!==1) d.setDate(d.getDate() - (day-1)); d.setHours(0,0,0,0); return d.getTime(); }
+        function getInicioMes() { let d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }
+
+        window.calcularFinanzas = function() {
+            let filtro = document.getElementById('filtroTiempoFinanzas').value;
+            let limiteTimestamp = 0;
+            if(filtro === 'hoy') limiteTimestamp = getInicioDia();
+            else if(filtro === 'semana') limiteTimestamp = getInicioSemana();
+            else if(filtro === 'mes') limiteTimestamp = getInicioMes();
+
+            let totalVentas = 0; let totalCostosVenta = 0; 
+            ventas.forEach(v => { 
+                if(filtro === 'todo' || (v.timestamp && v.timestamp >= limiteTimestamp)) {
+                    totalVentas += v.total; totalCostosVenta += v.costo; 
+                }
+            });
+            
+            let totalGastos = 0; 
+            gastos.forEach(g => { 
+                if(filtro === 'todo' || (g.timestamp && g.timestamp >= limiteTimestamp)) {
+                    totalGastos += g.monto; 
+                }
+            });
+
+            let totalComprasPer = 0;
+            comprasHistorial.forEach(c => {
+                if(filtro === 'todo' || (c.timestamp && c.timestamp >= limiteTimestamp)) {
+                    totalComprasPer += c.total;
+                }
+            });
+
+            let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
+            let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); }); // El inventario total no se filtra
+
+            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; 
+            document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`; 
+            document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; 
+            document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
+            let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
+            document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
+            document.getElementById('kpiComprasPer').innerText = `$${totalComprasPer.toFixed(2)}`;
+        }
+
+        // --- CORTE DE CAJA DIARIO ---
+        window.calcularCorteDiario = function() {
+            let limiteHoy = getInicioDia();
+            
+            let vHoy = 0;
+            ventas.forEach(v => { if(v.timestamp && v.timestamp >= limiteHoy) vHoy += v.total; });
+            
+            let gHoy = 0;
+            gastos.forEach(g => { if(g.timestamp && g.timestamp >= limiteHoy) gHoy += g.monto; });
+
+            let fondo = parseFloat(document.getElementById('fondoCaja').value) || 0;
+            let esperado = fondo + vHoy - gHoy;
+
+            document.getElementById('corteVentasHoy').innerText = `+$${vHoy.toFixed(2)}`;
+            document.getElementById('corteGastosHoy').innerText = `-$${gHoy.toFixed(2)}`;
+            document.getElementById('corteTotalEsperado').innerText = `$${esperado.toFixed(2)}`;
+            
+            return { vHoy, gHoy, fondo, esperado };
+        }
+
+        window.imprimirCorte = function() {
+            let datosCorte = calcularCorteDiario();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 90] });
+            
+            doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("DLC DÍAZ", 29, 10, {align: 'center'});
+            doc.setFontSize(9); doc.text("CORTE DE CAJA", 29, 15, {align: 'center'});
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); 
+            doc.text(`FECHA: ${new Date().toLocaleString()}`, 29, 20, {align: 'center'});
+            doc.setLineDashPattern([1, 1], 0); doc.line(2, 23, 56, 23); doc.setLineDashPattern([], 0);
+            
+            let y = 30;
+            doc.setFontSize(8);
+            doc.text("Fondo Inicial:", 2, y); doc.text(`$${datosCorte.fondo.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            doc.text("Ventas (Ingresos):", 2, y); doc.text(`+$${datosCorte.vHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            doc.text("Gastos (Retiros):", 2, y); doc.text(`-$${datosCorte.gHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            
+            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 6;
+            
+            doc.setFontSize(10); doc.setFont("helvetica", "bold");
+            doc.text("TOTAL EN CAJA:", 2, y); doc.text(`$${datosCorte.esperado.toFixed(2)}`, 56, y, {align: 'right'}); y += 12;
+            
+            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("Firma de Conformidad", 29, y, {align: 'center'});
+            
+            let nomArchivo = `CorteCaja_${new Date().getTime()}.pdf`;
+            doc.save(nomArchivo);
+            
+            // Subir corte de caja a Drive también (Opcional, pero muy recomendado)
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
+            const scriptURL = "https://script.google.com/macros/s/TU_CODIGO_AQUI/exec";
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nomArchivo, base64: pdfBase64 }) }).catch(err => console.log(err));
+        }
+
+        // --- HISTORIALES VISUALES ---
         function renderHistorialVentas() {
             const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = '';
             let ventasOrdenadas = [...ventas].sort((a,b) => b.timestamp - a.timestamp);
@@ -392,18 +536,6 @@
             });
         }
 
-        // --- FINANZAS ---
-        window.guardarGasto = async function() { let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); if(!con || isNaN(mon)) return; await addDoc(collection(db, "gastos"), { fecha: new Date().toLocaleString(), concepto: con, monto: mon }); alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = ''; }
-        function calcularFinanzas() {
-            let totalVentas = 0; let totalCostosVenta = 0; ventas.forEach(v => { totalVentas += v.total; totalCostosVenta += v.costo; });
-            let totalGastos = 0; gastos.forEach(g => { totalGastos += g.monto; });
-            let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
-            let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); });
-
-            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`; document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
-            let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
-            document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
-        }
         window.descargarCSV = function() {
             if (ventas.length === 0) return alert("No hay ventas");
             let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad\n";
@@ -411,11 +543,10 @@
             const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // --- PDF Y DRIVE ---
+        // --- PDF TICKET DE VENTA Y DRIVE ---
         function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total, nombreArchivoFinal) {
             const { jsPDF } = window.jspdf;
             
-            // CÁLCULO DINÁMICO DE ALTURA DEL RECIBO
             let lineasExtra = 0;
             if (cliente && cliente.length > 25) lineasExtra += 1;
             if (direccion) lineasExtra += Math.ceil(direccion.length / 30);
@@ -429,14 +560,10 @@
             doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
             
             let y = 31; 
-            doc.text(`TICKET: ${folio}`, 2, y); y += 4; 
-            doc.text(`FECHA: ${fecha}`, 2, y); y += 4; 
+            doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; 
             
-            // AJUSTE MULTILÍNEA PARA CLIENTE
             let textCliente = doc.splitTextToSize(`CLIENTE: ${cliente}`, 54);
             doc.text(textCliente, 2, y); y += (textCliente.length * 3.5) + 0.5;
-            
-            // AJUSTE MULTILÍNEA PARA DIRECCIÓN
             if(direccion) { 
                 let textDir = doc.splitTextToSize(`DIR: ${direccion}`, 54);
                 doc.text(textDir, 2, y); y += (textDir.length * 3.5) + 0.5;
@@ -461,10 +588,8 @@
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             
             // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
-            const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
-
-            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) })
-            .then(res => res.json()).then(data => { if(data.status === "success") console.log("PDF en Drive OK"); }).catch(err => console.error("Error Drive:", err));
+            const scriptURL = "https://script.google.com/macros/s/TU_CODIGO_AQUI/exec";
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) }).catch(err => console.log(err));
         }
     </script>
 
