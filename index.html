@@ -12,51 +12,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
-        
-        /* LOGIN */
         #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #004080; }
         .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
         .login-box h2 { color: #004080; margin-bottom: 20px; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .login-box button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .login-box button:hover { background: #218838; }
-
-        /* APP */
         #app-container { display: none; padding: 20px; }
-        
         .header { background-color: #004080; color: white; padding: 15px 20px; text-align: left; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 22px; }
         .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        
         .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .tab-btn { padding: 10px 15px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 13px; }
         .tab-btn.active { background: #004080; color: white; box-shadow: 0 4px 6px rgba(0,64,128,0.3); }
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8f9fa; color: #555; }
-        
         .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; }
         .btn-danger { background: #dc3545; padding: 6px 10px; }
         .btn-blue { background: #007bff; }
         .btn-purple { background: #6f42c1; color: white; }
         input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         .totales { font-size: 1.4em; text-align: right; margin-top: 20px; font-weight: bold; color: #004080; }
-        
         .kpi-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #004080; margin-bottom: 15px; }
         .kpi-title { font-size: 14px; color: #666; margin-bottom: 5px; }
         .kpi-value { font-size: 24px; font-weight: bold; color: #333; }
         .text-green { color: #28a745 !important; }
         .text-red { color: #dc3545 !important; }
-        
         .corte-container { background: #fff3cd; padding: 25px; border-radius: 10px; border: 2px dashed #ffc107; text-align: center; }
-        .corte-resumen { font-size: 18px; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -82,7 +69,7 @@
             <button class="tab-btn active" onclick="showTab('pos')">🛒 POS</button>
             <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
             <button class="tab-btn" onclick="showTab('compras')">📥 Comprar a Proveedor</button>
-            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas (Analítica)</button>
+            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
             <button class="tab-btn" onclick="showTab('corteCaja')" style="background-color: #ffc107; color: #000;">💰 Corte Diario</button>
             <button class="tab-btn" onclick="showTab('historialVentas')">📜 Historial Ventas</button>
             <button class="tab-btn" onclick="showTab('historialCompras')">📜 Historial Compras</button>
@@ -152,13 +139,9 @@
             <div style="background: #e4e6eb; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
                 <h3 style="margin: 0;">Filtro de Análisis:</h3>
                 <select id="filtroTiempoFinanzas" onchange="calcularFinanzas()" style="width: 250px; margin: 0; font-weight: bold;">
-                    <option value="hoy">📅 Solo Hoy</option>
-                    <option value="semana">📅 Esta Semana</option>
-                    <option value="mes">📅 Este Mes</option>
-                    <option value="todo" selected>📊 Todo el Histórico Total</option>
+                    <option value="hoy">📅 Solo Hoy</option><option value="semana">📅 Esta Semana</option><option value="mes">📅 Este Mes</option><option value="todo" selected>📊 Todo el Histórico Total</option>
                 </select>
             </div>
-
             <div class="grid-2">
                 <div>
                     <h3>📄 Estado de Resultados del Periodo</h3>
@@ -171,17 +154,15 @@
                 <div>
                     <h3>⚖️ Balance y Registro</h3>
                     <div class="kpi-card" style="border-left-color:#17a2b8;"><div class="kpi-title">Inversión en Compras (Periodo)</div><div class="kpi-value" id="kpiComprasPer">$0.00</div></div>
-                    <div class="kpi-card" style="border-left-color:#17a2b8; background-color: #e3f2fd;"><div class="kpi-title">Valor Actual del Inventario Total (No filtrable)</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
-                    
+                    <div class="kpi-card" style="border-left-color:#17a2b8; background-color: #e3f2fd;"><div class="kpi-title">Valor Actual del Inventario Total</div><div class="kpi-value" id="kpiInventario">$0.00</div></div>
                     <div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-top:20px;">
-                        <h4>Registrar Gasto Operativo</h4>
-                        <input type="text" id="gastoConcepto" placeholder="Concepto (ej. Pago de Luz)">
+                        <h4>Registrar Gasto</h4>
+                        <input type="text" id="gastoConcepto" placeholder="Concepto">
                         <input type="number" id="gastoMonto" placeholder="Monto $">
-                        <button class="btn btn-danger" onclick="guardarGasto()">Registrar Gasto</button>
+                        <button class="btn btn-danger" onclick="guardarGasto()">Registrar</button>
                     </div>
                     <div style="background:#e8f5e9; padding:20px; border-radius:8px; margin-top:20px;">
-                        <h4>📥 Exportar Información</h4>
-                        <button class="btn btn-blue" onclick="descargarCSV()">Descargar Historial Total CSV</button>
+                        <h4>📥 Reportes</h4><button class="btn btn-blue" onclick="descargarCSV()">Descargar CSV</button>
                     </div>
                 </div>
             </div>
@@ -189,73 +170,27 @@
 
         <div id="corteCaja" class="tab-content">
             <div class="corte-container">
-                <h2>💰 Corte de Caja Diario (Día de Hoy)</h2>
-                <p>Calcula el flujo de efectivo que debe haber en la caja registradora en este momento.</p>
-                
+                <h2>💰 Corte de Caja Diario</h2>
                 <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
-                    <h3 style="margin: 0;">Fondo Inicial (Con cuánto abriste): $</h3>
+                    <h3 style="margin: 0;">Fondo Inicial: $</h3>
                     <input type="number" id="fondoCaja" value="0" onkeyup="calcularCorteDiario()" onchange="calcularCorteDiario()" style="width: 150px; font-size: 18px; font-weight: bold; text-align: center; margin: 0;">
                 </div>
-
                 <div class="grid-2" style="margin-top: 30px; text-align: left;">
-                    <div class="kpi-card" style="background: white;">
-                        <div class="kpi-title">Ingresos en Efectivo (Ventas Hoy)</div>
-                        <div class="kpi-value text-green" id="corteVentasHoy">+$0.00</div>
-                    </div>
-                    <div class="kpi-card" style="background: white; border-left-color:#dc3545;">
-                        <div class="kpi-title">Retiros de Caja (Gastos Hoy)</div>
-                        <div class="kpi-value text-red" id="corteGastosHoy">-$0.00</div>
-                    </div>
+                    <div class="kpi-card" style="background: white;"><div class="kpi-title">Ventas Hoy</div><div class="kpi-value text-green" id="corteVentasHoy">+$0.00</div></div>
+                    <div class="kpi-card" style="background: white; border-left-color:#dc3545;"><div class="kpi-title">Gastos Hoy</div><div class="kpi-value text-red" id="corteGastosHoy">-$0.00</div></div>
                 </div>
-
                 <div style="background: #d4edda; padding: 20px; border-radius: 8px; border: 2px solid #28a745; margin-top: 20px;">
-                    <div style="font-size: 18px; color: #155724; font-weight: bold;">Efectivo Total Esperado en Caja:</div>
+                    <div style="font-size: 18px; color: #155724; font-weight: bold;">Efectivo Esperado:</div>
                     <div style="font-size: 48px; font-weight: bold; color: #155724; margin: 10px 0;" id="corteTotalEsperado">$0.00</div>
                 </div>
-
-                <button class="btn btn-purple" style="margin-top: 20px; width: 100%; font-size: 18px;" onclick="imprimirCorte()">🖨️ IMPRIMIR TICKET DE CORTE DE CAJA</button>
+                <button class="btn btn-purple" style="margin-top: 20px; width: 100%; font-size: 18px;" onclick="imprimirCorte()">🖨️ IMPRIMIR CORTE DE CAJA</button>
             </div>
         </div>
 
-        <div id="historialVentas" class="tab-content">
-            <h3>Historial de Ventas</h3>
-            <div style="overflow-x: auto;"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table></div>
-        </div>
-
-        <div id="historialCompras" class="tab-content">
-            <h3>Historial de Compras a Proveedores</h3>
-            <div style="overflow-x: auto;"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table></div>
-        </div>
-
-        <div id="clientes" class="tab-content">
-            <div class="grid-2">
-                <div>
-                    <h3>Nuevo Cliente</h3>
-                    <input type="text" id="cliNom" placeholder="Nombre">
-                    <input type="text" id="cliTel" placeholder="Teléfono">
-                    <input type="text" id="cliDir" placeholder="Dirección">
-                    <input type="email" id="cliEmail" placeholder="Email">
-                    <button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar Cliente</button>
-                </div>
-            </div>
-            <h3 style="margin-top: 30px;">Directorio</h3>
-            <table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table>
-        </div>
-
-        <div id="proveedores" class="tab-content">
-            <div class="grid-2">
-                <div>
-                    <h3>Nuevo Proveedor</h3>
-                    <input type="text" id="provNom" placeholder="Empresa">
-                    <input type="text" id="provTel" placeholder="Teléfono">
-                    <input type="text" id="provDir" placeholder="Dirección">
-                    <input type="text" id="provContacto" placeholder="Contacto">
-                    <button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar Proveedor</button>
-                </div>
-            </div>
-            <h3 style="margin-top: 30px;">Directorio</h3>
-            <table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table>
-        </div>
+        <div id="historialVentas" class="tab-content"><h3>Historial de Ventas</h3><div style="overflow-x: auto;"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table></div></div>
+        <div id="historialCompras" class="tab-content"><h3>Historial de Compras</h3><div style="overflow-x: auto;"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table></div></div>
+        <div id="clientes" class="tab-content"><div class="grid-2"><div><h3>Nuevo Cliente</h3><input type="text" id="cliNom" placeholder="Nombre"><input type="text" id="cliTel" placeholder="Teléfono"><input type="text" id="cliDir" placeholder="Dirección"><input type="email" id="cliEmail" placeholder="Email"><button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar</button></div></div><h3 style="margin-top: 30px;">Directorio</h3><table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table></div>
+        <div id="proveedores" class="tab-content"><div class="grid-2"><div><h3>Nuevo Proveedor</h3><input type="text" id="provNom" placeholder="Empresa"><input type="text" id="provTel" placeholder="Teléfono"><input type="text" id="provDir" placeholder="Dirección"><input type="text" id="provContacto" placeholder="Contacto"><button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar</button></div></div><h3 style="margin-top: 30px;">Directorio</h3><table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table></div>
     </div> <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -278,28 +213,14 @@
         let productos = []; let clientes = []; let proveedores = []; let ventas = []; let comprasHistorial = []; let gastos = []; let carritoPOS = []; let listaCompras = [];
         let unsubscribeFuncs = []; 
 
-        // --- SISTEMA DE LOGIN ---
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-container').style.display = 'block';
-                iniciarBaseDeDatos();
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-                document.getElementById('app-container').style.display = 'none';
-                detenerBaseDeDatos();
-            }
+            if (user) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'block'; iniciarBaseDeDatos(); } 
+            else { document.getElementById('login-screen').style.display = 'flex'; document.getElementById('app-container').style.display = 'none'; detenerBaseDeDatos(); }
         });
 
-        window.iniciarSesion = function() {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPassword').value;
-            document.getElementById('loginError').style.display = 'none';
-            signInWithEmailAndPassword(auth, email, pass).then(() => { document.getElementById('loginPassword').value = ''; }).catch((error) => { document.getElementById('loginError').style.display = 'block'; });
-        }
+        window.iniciarSesion = function() { signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value).then(() => { document.getElementById('loginPassword').value = ''; document.getElementById('loginError').style.display = 'none'; }).catch(() => { document.getElementById('loginError').style.display = 'block'; }); }
         window.cerrarSesion = function() { signOut(auth).then(() => { alert("Sesión cerrada"); }); }
 
-        // --- CARGA DE BASE DE DATOS SECUENCIAL ---
         function iniciarBaseDeDatos() {
             unsubscribeFuncs.push(onSnapshot(collection(db, "productos"), (snap) => { productos = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderInventario(); renderCatalogoPOS(); poblarSelectProductos(); calcularFinanzas(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "clientes"), (snap) => { clientes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTablaABM('tablaClientes', clientes, ['nombre', 'telefono', 'direccion', 'email']); poblarSelect('clienteSelect', clientes, 'nombre', 'Mostrador'); }));
@@ -311,51 +232,20 @@
 
         function detenerBaseDeDatos() { unsubscribeFuncs.forEach(unsub => unsub()); unsubscribeFuncs = []; productos = []; clientes = []; proveedores = []; ventas = []; gastos = []; comprasHistorial = []; }
 
-        // --- UTILIDADES GLOBALES (ORDEN ALFABÉTICO) ---
-        function renderTablaABM(idTabla, datos, campos) { 
-            const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; 
-            let datosOrd = [...datos].sort((a,b) => (a[campos[0]] || '').toString().localeCompare((b[campos[0]] || '').toString()));
-            datosOrd.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); 
-        }
-        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { 
-            const sel = document.getElementById(idSelect); 
-            sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; 
-            let datosOrd = [...datos].sort((a,b) => (a[campoTexto] || '').toString().localeCompare((b[campoTexto] || '').toString()));
-            datosOrd.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); 
-        }
+        function renderTablaABM(idTabla, datos, campos) { const tbody = document.querySelector(`#${idTabla} tbody`); tbody.innerHTML = ''; let datosOrd = [...datos].sort((a,b) => (a[campos[0]] || '').toString().localeCompare((b[campos[0]] || '').toString())); datosOrd.forEach(item => { let tr = '<tr>'; campos.forEach(c => tr += `<td>${item[c] || ''}</td>`); tr += '</tr>'; tbody.innerHTML += tr; }); }
+        function poblarSelect(idSelect, datos, campoTexto, opcionDefault) { const sel = document.getElementById(idSelect); sel.innerHTML = opcionDefault !== null ? `<option value="${opcionDefault}">${opcionDefault === '' ? '-- Seleccionar --' : opcionDefault}</option>` : ''; let datosOrd = [...datos].sort((a,b) => (a[campoTexto] || '').toString().localeCompare((b[campoTexto] || '').toString())); datosOrd.forEach(d => { sel.innerHTML += `<option value="${d[campoTexto]}">${d[campoTexto]}</option>`; }); }
 
-        window.guardarEntidad = async function(col) {
-            let data = col === 'clientes' ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value };
-            if(!data.nombre) return alert("Nombre obligatorio");
-            await addDoc(collection(db, col), data); alert("Guardado"); document.querySelectorAll(`#${col} input`).forEach(i => i.value = '');
-        }
+        window.guardarEntidad = async function(col) { let data = col === 'clientes' ? { nombre: document.getElementById('cliNom').value, telefono: document.getElementById('cliTel').value, direccion: document.getElementById('cliDir').value, email: document.getElementById('cliEmail').value } : { nombre: document.getElementById('provNom').value, telefono: document.getElementById('provTel').value, direccion: document.getElementById('provDir').value, contacto: document.getElementById('provContacto').value }; if(!data.nombre) return alert("Nombre obligatorio"); await addDoc(collection(db, col), data); alert("Guardado"); document.querySelectorAll(`#${col} input`).forEach(i => i.value = ''); }
+        window.guardarProducto = async function() { const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) }; if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos"); await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = ''); }
+        
+        function renderInventario() { const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || '')); prodOrd.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); }
 
-        window.guardarProducto = async function() {
-            const data = { categoria: document.getElementById('invCat').value, nombre: document.getElementById('invNom').value, costo: parseFloat(document.getElementById('invCosto').value), precio: parseFloat(document.getElementById('invPrecio').value), stock: parseInt(document.getElementById('invStock').value) };
-            if(!data.nombre || isNaN(data.precio)) return alert("Revisa los datos"); await addDoc(collection(db, "productos"), data); alert("Producto creado"); document.querySelectorAll('#inventario input').forEach(i => i.value = '');
-        }
-        function renderInventario() { 
-            const tbody = document.getElementById('tablaInventario'); tbody.innerHTML = ''; 
-            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
-            prodOrd.forEach(p => { tbody.innerHTML += `<tr><td>${p.categoria}</td><td>${p.nombre}</td><td>$${p.costo.toFixed(2)}</td><td>$${p.precio.toFixed(2)}</td><td>${p.stock}</td></tr>`; }); 
-        }
-
-        // --- POS ---
-        window.renderCatalogoPOS = function(filtro = '') { 
-            const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = ''; 
-            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
-            prodOrd.forEach(p => { if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){ tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`; } }); 
-        }
+        window.renderCatalogoPOS = function(filtro = '') { const tbody = document.getElementById('tablaCatalogo'); tbody.innerHTML = ''; let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || '')); prodOrd.forEach(p => { if(p.nombre.toLowerCase().includes(filtro.toLowerCase())){ tbody.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio.toFixed(2)}</td><td style="${p.stock <= 5 ? 'color:red; font-weight:bold;' : ''}">${p.stock}</td><td><button class="btn" onclick="agregarCarritoPOS('${p.id}')">+</button></td></tr>`; } }); }
         window.filtrarCatalogo = () => renderCatalogoPOS(document.getElementById('buscarProd').value);
 
         window.agregarCarritoPOS = function(id) { const prod = productos.find(p => p.id === id); if(prod.stock <= 0) return alert("Agotado"); const item = carritoPOS.find(i => i.id === id); if(item) { if(item.cant >= prod.stock) return alert("Sin stock"); item.cant++; } else { carritoPOS.push({ ...prod, cant: 1 }); } window.renderCarrito(); }
         window.quitarDelCarritoPOS = function(id) { carritoPOS = carritoPOS.filter(i => i.id !== id); window.renderCarrito(); }
-
-        window.renderCarrito = function() {
-            const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = ''; let subtotal = 0;
-            carritoPOS.forEach(i => { let importe = i.precio * i.cant; subtotal += importe; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td><td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`; });
-            let desc = parseFloat(document.getElementById('descVenta').value) || 0; let total = subtotal - desc; document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`; return { subtotal, desc, total };
-        }
+        window.renderCarrito = function() { const tbody = document.getElementById('tablaCarrito'); tbody.innerHTML = ''; let subtotal = 0; carritoPOS.forEach(i => { let importe = i.precio * i.cant; subtotal += importe; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${importe.toFixed(2)}</td><td><button class="btn btn-danger" onclick="quitarDelCarritoPOS('${i.id}')">X</button></td></tr>`; }); let desc = parseFloat(document.getElementById('descVenta').value) || 0; let total = subtotal - desc; document.getElementById('totalVenta').innerText = `TOTAL: $${total.toFixed(2)}`; return { subtotal, desc, total }; }
 
         window.cobrar = async function() {
             if(carritoPOS.length === 0) return; const cliente = document.getElementById('clienteSelect').value; let { subtotal, desc, total } = window.renderCarrito(); let costoTotal = carritoPOS.reduce((sum, i) => sum + (i.costo * i.cant), 0);
@@ -371,233 +261,106 @@
             let nombreArchivo = `Recibo-${abrev}_${fDoc}_${total.toFixed(2)}.pdf`;
 
             generarPDF(folio, fechaStr, cliente, dirCliente, carritoPOS, subtotal, desc, total, nombreArchivo);
-            carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); alert(`Venta procesada. Folio: ${folio}`);
+            carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); 
         }
 
-        // --- COMPRAS (COSTO PROMEDIO) ---
-        function poblarSelectProductos() { 
-            const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; 
-            let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
-            prodOrd.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); 
-        }
+        function poblarSelectProductos() { const sel = document.getElementById('compraProductoSelect'); sel.innerHTML = '<option value="">-- Producto --</option>'; let prodOrd = [...productos].sort((a,b) => (a.nombre || '').localeCompare(b.nombre || '')); prodOrd.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; }); }
         window.cargarDatosProductoCompra = function() { const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(p) { document.getElementById('compraCosto').value = p.costo; document.getElementById('compraPrecio').value = p.precio; document.getElementById('compraCant').value = 1; } }
-        window.agregarACompra = function() {
-            const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(!p) return alert("Selecciona producto");
-            let cant = parseInt(document.getElementById('compraCant').value); let nCosto = parseFloat(document.getElementById('compraCosto').value); let nPrecio = parseFloat(document.getElementById('compraPrecio').value);
-            if(isNaN(cant) || isNaN(nCosto)) return;
-            listaCompras.push({ id: p.id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto }); renderListaCompras();
-        }
-        function renderListaCompras() {
-            const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = ''; let total = 0;
-            listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; });
-            document.getElementById('totalCompra').innerText = `TOTAL: $${total.toFixed(2)}`;
-        }
+        window.agregarACompra = function() { const p = productos.find(x => x.id === document.getElementById('compraProductoSelect').value); if(!p) return alert("Selecciona producto"); let cant = parseInt(document.getElementById('compraCant').value); let nCosto = parseFloat(document.getElementById('compraCosto').value); let nPrecio = parseFloat(document.getElementById('compraPrecio').value); if(isNaN(cant) || isNaN(nCosto)) return; listaCompras.push({ id: p.id, nombre: p.nombre, cant, costo: nCosto, precio: nPrecio, subtotal: cant * nCosto }); renderListaCompras(); }
+        function renderListaCompras() { const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = ''; let total = 0; listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; }); document.getElementById('totalCompra').innerText = `TOTAL: $${total.toFixed(2)}`; }
         
         window.finalizarCompra = async function() {
-            const prov = document.getElementById('compraProveedorSelect').value;
-            if(listaCompras.length === 0 || !prov) return alert("Faltan datos");
-            
+            const prov = document.getElementById('compraProveedorSelect').value; if(listaCompras.length === 0 || !prov) return alert("Faltan datos");
             let totalCompraGral = 0;
             for(let i of listaCompras) { 
-                let pReal = productos.find(x => x.id === i.id); 
-                let stockAnt = pReal.stock; let costoAnt = pReal.costo;
-                let valorViejo = stockAnt * costoAnt; let valorNuevo = i.cant * i.costo;
-                let stockTotal = stockAnt + i.cant;
-                let nuevoCosto = stockTotal > 0 ? (valorViejo + valorNuevo) / stockTotal : costoAnt;
-                await updateDoc(doc(db, "productos", i.id), { stock: stockTotal, costo: nuevoCosto, precio: i.precio }); 
-                totalCompraGral += i.subtotal;
+                let pReal = productos.find(x => x.id === i.id); let stockAnt = pReal.stock; let costoAnt = pReal.costo; let valorViejo = stockAnt * costoAnt; let valorNuevo = i.cant * i.costo; let stockTotal = stockAnt + i.cant; let nuevoCosto = stockTotal > 0 ? (valorViejo + valorNuevo) / stockTotal : costoAnt;
+                await updateDoc(doc(db, "productos", i.id), { stock: stockTotal, costo: nuevoCosto, precio: i.precio }); totalCompraGral += i.subtotal;
             }
             await addDoc(collection(db, "compras"), { fecha: new Date().toLocaleString(), timestamp: new Date().getTime(), proveedor: prov, total: totalCompraGral, productos: listaCompras });
             listaCompras = []; renderListaCompras(); document.getElementById('compraProductoSelect').value = ''; alert("Compra registrada y promediada.");
         }
 
-        // --- FINANZAS AVANZADAS Y FILTROS DE TIEMPO ---
-        window.guardarGasto = async function() { 
-            let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); 
-            if(!con || isNaN(mon)) return; 
-            let d = new Date();
-            await addDoc(collection(db, "gastos"), { fecha: d.toLocaleString(), timestamp: d.getTime(), concepto: con, monto: mon }); 
-            alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = ''; 
-        }
-
+        window.guardarGasto = async function() { let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); if(!con || isNaN(mon)) return; let d = new Date(); await addDoc(collection(db, "gastos"), { fecha: d.toLocaleString(), timestamp: d.getTime(), concepto: con, monto: mon }); alert("Gasto Registrado"); document.getElementById('gastoConcepto').value = ''; document.getElementById('gastoMonto').value = ''; }
         function getInicioDia() { let d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
         function getInicioSemana() { let d = new Date(); let day = d.getDay()||7; if(day!==1) d.setDate(d.getDate() - (day-1)); d.setHours(0,0,0,0); return d.getTime(); }
         function getInicioMes() { let d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }
 
         window.calcularFinanzas = function() {
-            let filtro = document.getElementById('filtroTiempoFinanzas').value;
-            let limiteTimestamp = 0;
-            if(filtro === 'hoy') limiteTimestamp = getInicioDia();
-            else if(filtro === 'semana') limiteTimestamp = getInicioSemana();
-            else if(filtro === 'mes') limiteTimestamp = getInicioMes();
+            let filtro = document.getElementById('filtroTiempoFinanzas').value; let limiteTimestamp = 0;
+            if(filtro === 'hoy') limiteTimestamp = getInicioDia(); else if(filtro === 'semana') limiteTimestamp = getInicioSemana(); else if(filtro === 'mes') limiteTimestamp = getInicioMes();
 
-            let totalVentas = 0; let totalCostosVenta = 0; 
-            ventas.forEach(v => { 
-                if(filtro === 'todo' || (v.timestamp && v.timestamp >= limiteTimestamp)) {
-                    totalVentas += v.total; totalCostosVenta += v.costo; 
-                }
-            });
-            
-            let totalGastos = 0; 
-            gastos.forEach(g => { 
-                if(filtro === 'todo' || (g.timestamp && g.timestamp >= limiteTimestamp)) {
-                    totalGastos += g.monto; 
-                }
-            });
+            let totalVentas = 0; let totalCostosVenta = 0; ventas.forEach(v => { if(filtro === 'todo' || (v.timestamp && v.timestamp >= limiteTimestamp)) { totalVentas += v.total; totalCostosVenta += v.costo; } });
+            let totalGastos = 0; gastos.forEach(g => { if(filtro === 'todo' || (g.timestamp && g.timestamp >= limiteTimestamp)) { totalGastos += g.monto; } });
+            let totalComprasPer = 0; comprasHistorial.forEach(c => { if(filtro === 'todo' || (c.timestamp && c.timestamp >= limiteTimestamp)) { totalComprasPer += c.total; } });
 
-            let totalComprasPer = 0;
-            comprasHistorial.forEach(c => {
-                if(filtro === 'todo' || (c.timestamp && c.timestamp >= limiteTimestamp)) {
-                    totalComprasPer += c.total;
-                }
-            });
+            let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos; let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); });
 
-            let bruta = totalVentas - totalCostosVenta; let neta = bruta - totalGastos;
-            let valorInv = 0; productos.forEach(p => { valorInv += (p.costo * p.stock); }); // El inventario total no se filtra
-
-            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; 
-            document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`; 
-            document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; 
-            document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
+            document.getElementById('kpiVentas').innerText = `$${totalVentas.toFixed(2)}`; document.getElementById('kpiCostos').innerText = `-$${totalCostosVenta.toFixed(2)}`; document.getElementById('kpiBruta').innerText = `$${bruta.toFixed(2)}`; document.getElementById('kpiGastos').innerText = `-$${totalGastos.toFixed(2)}`;
             let kn = document.getElementById('kpiNeta'); kn.innerText = `$${neta.toFixed(2)}`; kn.className = neta >= 0 ? "kpi-value text-green" : "kpi-value text-red";
-            document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`;
-            document.getElementById('kpiComprasPer').innerText = `$${totalComprasPer.toFixed(2)}`;
+            document.getElementById('kpiInventario').innerText = `$${valorInv.toFixed(2)}`; document.getElementById('kpiComprasPer').innerText = `$${totalComprasPer.toFixed(2)}`;
         }
 
-        // --- CORTE DE CAJA DIARIO ---
         window.calcularCorteDiario = function() {
-            let limiteHoy = getInicioDia();
-            
-            let vHoy = 0;
-            ventas.forEach(v => { if(v.timestamp && v.timestamp >= limiteHoy) vHoy += v.total; });
-            
-            let gHoy = 0;
-            gastos.forEach(g => { if(g.timestamp && g.timestamp >= limiteHoy) gHoy += g.monto; });
-
-            let fondo = parseFloat(document.getElementById('fondoCaja').value) || 0;
-            let esperado = fondo + vHoy - gHoy;
-
-            document.getElementById('corteVentasHoy').innerText = `+$${vHoy.toFixed(2)}`;
-            document.getElementById('corteGastosHoy').innerText = `-$${gHoy.toFixed(2)}`;
-            document.getElementById('corteTotalEsperado').innerText = `$${esperado.toFixed(2)}`;
-            
-            return { vHoy, gHoy, fondo, esperado };
+            let limiteHoy = getInicioDia(); let vHoy = 0; ventas.forEach(v => { if(v.timestamp && v.timestamp >= limiteHoy) vHoy += v.total; }); let gHoy = 0; gastos.forEach(g => { if(g.timestamp && g.timestamp >= limiteHoy) gHoy += g.monto; });
+            let fondo = parseFloat(document.getElementById('fondoCaja').value) || 0; let esperado = fondo + vHoy - gHoy;
+            document.getElementById('corteVentasHoy').innerText = `+$${vHoy.toFixed(2)}`; document.getElementById('corteGastosHoy').innerText = `-$${gHoy.toFixed(2)}`; document.getElementById('corteTotalEsperado').innerText = `$${esperado.toFixed(2)}`; return { vHoy, gHoy, fondo, esperado };
         }
+
+        // --- SISTEMA NATIVO DE IMPRESIÓN DIRECTA (WEB SHARE API) ---
 
         window.imprimirCorte = function() {
-            let datosCorte = calcularCorteDiario();
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 90] });
-            
-            doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("DLC DÍAZ", 29, 10, {align: 'center'});
-            doc.setFontSize(9); doc.text("CORTE DE CAJA", 29, 15, {align: 'center'});
-            doc.setFontSize(7); doc.setFont("helvetica", "normal"); 
-            doc.text(`FECHA: ${new Date().toLocaleString()}`, 29, 20, {align: 'center'});
+            let datosCorte = calcularCorteDiario(); const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 90] });
+            doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("DLC DÍAZ", 29, 10, {align: 'center'}); doc.setFontSize(9); doc.text("CORTE DE CAJA", 29, 15, {align: 'center'}); doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text(`FECHA: ${new Date().toLocaleString()}`, 29, 20, {align: 'center'});
             doc.setLineDashPattern([1, 1], 0); doc.line(2, 23, 56, 23); doc.setLineDashPattern([], 0);
-            
-            let y = 30;
-            doc.setFontSize(8);
-            doc.text("Fondo Inicial:", 2, y); doc.text(`$${datosCorte.fondo.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
-            doc.text("Ventas (Ingresos):", 2, y); doc.text(`+$${datosCorte.vHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
-            doc.text("Gastos (Retiros):", 2, y); doc.text(`-$${datosCorte.gHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
-            
-            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 6;
-            
-            doc.setFontSize(10); doc.setFont("helvetica", "bold");
-            doc.text("TOTAL EN CAJA:", 2, y); doc.text(`$${datosCorte.esperado.toFixed(2)}`, 56, y, {align: 'right'}); y += 12;
-            
-            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("Firma de Conformidad", 29, y, {align: 'center'});
+            let y = 30; doc.setFontSize(8); doc.text("Fondo Inicial:", 2, y); doc.text(`$${datosCorte.fondo.toFixed(2)}`, 56, y, {align: 'right'}); y += 8; doc.text("Ventas (Ingresos):", 2, y); doc.text(`+$${datosCorte.vHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8; doc.text("Gastos (Retiros):", 2, y); doc.text(`-$${datosCorte.gHoy.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
+            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 6; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TOTAL EN CAJA:", 2, y); doc.text(`$${datosCorte.esperado.toFixed(2)}`, 56, y, {align: 'right'}); y += 12; doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("Firma de Conformidad", 29, y, {align: 'center'});
             
             let nomArchivo = `CorteCaja_${new Date().getTime()}.pdf`;
-            doc.save(nomArchivo);
+            const pdfBlob = doc.output('blob'); const pdfBase64 = doc.output('datauristring').split(',')[1];
             
-            // Subir corte de caja a Drive también (Opcional, pero muy recomendado)
-            const pdfBase64 = doc.output('datauristring').split(',')[1];
-            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
-            const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
+            // Subida invisible a Drive
+            const scriptURL = "https://script.google.com/macros/s/TU_CODIGO_AQUI/exec"; 
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nomArchivo, base64: pdfBase64 }) }).catch(err => console.log(err));
+
+            // Compartir directo a RawBT
+            if (navigator.canShare && navigator.userAgent.match(/Android/i)) {
+                const file = new File([pdfBlob], nomArchivo, { type: 'application/pdf' });
+                navigator.share({ files: [file], title: 'Imprimir Corte' }).catch(err => { console.log(err); doc.save(nomArchivo); });
+            } else { doc.save(nomArchivo); }
         }
 
-        // --- HISTORIALES VISUALES ---
-        function renderHistorialVentas() {
-            const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = '';
-            let ventasOrdenadas = [...ventas].sort((a,b) => b.timestamp - a.timestamp);
-            ventasOrdenadas.forEach(v => {
-                let detalles = v.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ");
-                tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha}</td><td>${v.cliente}</td><td>${detalles}</td><td>$${(v.descuento || 0).toFixed(2)}</td><td style="font-weight:bold; color:green;">$${v.total.toFixed(2)}</td></tr>`;
-            });
-        }
-        function renderHistorialCompras() {
-            const tbody = document.getElementById('tablaHistorialCompras'); tbody.innerHTML = '';
-            let comprasOrdenadas = [...comprasHistorial].sort((a,b) => b.timestamp - a.timestamp);
-            comprasOrdenadas.forEach(c => {
-                let detalles = c.productos ? c.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ") : "N/A";
-                tbody.innerHTML += `<tr><td>${c.fecha}</td><td>${c.proveedor}</td><td>${detalles}</td><td style="font-weight:bold; color:blue;">$${c.total.toFixed(2)}</td></tr>`;
-            });
-        }
-
-        window.descargarCSV = function() {
-            if (ventas.length === 0) return alert("No hay ventas");
-            let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad\n";
-            ventas.forEach(v => { let u = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${u.toFixed(2)}\n`; });
-            const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-
-        // --- PDF TICKET DE VENTA Y DRIVE ---
         function generarPDF(folio, fecha, cliente, direccion, items, subtotal, descuento, total, nombreArchivoFinal) {
-            const { jsPDF } = window.jspdf;
-            
-            let lineasExtra = 0;
-            if (cliente && cliente.length > 25) lineasExtra += 1;
-            if (direccion) lineasExtra += Math.ceil(direccion.length / 30);
-            
-            let alto_base = 80 + (lineasExtra * 4); 
-            if(descuento > 0) alto_base += 10;
+            const { jsPDF } = window.jspdf; let lineasExtra = 0; if (cliente && cliente.length > 25) lineasExtra += 1; if (direccion) lineasExtra += Math.ceil(direccion.length / 30); let alto_base = 80 + (lineasExtra * 4); if(descuento > 0) alto_base += 10;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, alto_base + (items.length * 10)] });
+            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'}); doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'}); doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
+            let y = 31; doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; 
+            let textCliente = doc.splitTextToSize(`CLIENTE: ${cliente}`, 54); doc.text(textCliente, 2, y); y += (textCliente.length * 3.5) + 0.5;
+            if(direccion) { let textDir = doc.splitTextToSize(`DIR: ${direccion}`, 54); doc.text(textDir, 2, y); y += (textDir.length * 3.5) + 0.5; }
+            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4; doc.setFont("helvetica", "bold"); doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'}); doc.setFont("helvetica", "normal"); y+=2; doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
+            items.forEach(i => { let nom = i.nombre.toUpperCase(); let fs = 8; doc.setFontSize(fs); while(doc.getTextWidth(nom) > 54 && fs > 5) { fs -= 0.5; doc.setFontSize(fs); } doc.text(nom, 2, y); y += 4; doc.setFontSize(8); doc.text(`${i.cant}`, 2, y); doc.text(`$${i.precio.toFixed(2)}`, 15, y); doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 56, y, {align: 'right'}); y += 2; doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 4; });
+            y += 2; if(descuento > 0) { doc.text("SUBTOTAL:", 15, y); doc.text(`$${subtotal.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; }
+            doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8; doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
             
-            doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("DISTRIBUIDORA DE PAPELERÍA", 29, 8, {align: 'center'}); doc.text("DLC DÍAZ", 29, 12, {align: 'center'});
-            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("IXTAPALUCA, EDO. DE MÉXICO", 29, 16, {align: 'center'}); doc.text("juan24.dlacruz@gmail.com", 29, 20, {align: 'center'}); doc.text("Tel: 5574695533", 29, 24, {align: 'center'});
-            doc.setLineDashPattern([1, 1], 0); doc.line(2, 27, 56, 27); doc.setLineDashPattern([], 0);
+            const pdfBlob = doc.output('blob'); const pdfBase64 = doc.output('datauristring').split(',')[1];
             
-            let y = 31; 
-            doc.text(`TICKET: ${folio}`, 2, y); y += 4; doc.text(`FECHA: ${fecha}`, 2, y); y += 4; 
-            
-            let textCliente = doc.splitTextToSize(`CLIENTE: ${cliente}`, 54);
-            doc.text(textCliente, 2, y); y += (textCliente.length * 3.5) + 0.5;
-            if(direccion) { 
-                let textDir = doc.splitTextToSize(`DIR: ${direccion}`, 54);
-                doc.text(textDir, 2, y); y += (textDir.length * 3.5) + 0.5;
-            }
-            
-            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
-            doc.setFont("helvetica", "bold"); doc.text("CANT", 2, y); doc.text("PCIO U.", 15, y); doc.text("IMPORTE", 56, y, {align: 'right'}); doc.setFont("helvetica", "normal"); y+=2;
-            doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y+=4;
-
-            items.forEach(i => {
-                let nom = i.nombre.toUpperCase(); let fs = 8; doc.setFontSize(fs);
-                while(doc.getTextWidth(nom) > 54 && fs > 5) { fs -= 0.5; doc.setFontSize(fs); }
-                doc.text(nom, 2, y); y += 4; doc.setFontSize(8); doc.text(`${i.cant}`, 2, y); doc.text(`$${i.precio.toFixed(2)}`, 15, y); doc.text(`$${(i.precio * i.cant).toFixed(2)}`, 56, y, {align: 'right'});
-                y += 2; doc.setLineDashPattern([1, 1], 0); doc.line(2, y, 56, y); doc.setLineDashPattern([], 0); y += 4;
-            });
-            y += 2;
-            if(descuento > 0) { doc.text("SUBTOTAL:", 15, y); doc.text(`$${subtotal.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; doc.text("DESCUENTO:", 15, y); doc.text(`-$${descuento.toFixed(2)}`, 56, y, {align: 'right'}); y += 4; }
-            doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("TOTAL:", 10, y); doc.text(`$${total.toFixed(2)}`, 56, y, {align: 'right'}); y += 8;
-            doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("¡GRACIAS POR SU COMPRA!", 29, y, {align: 'center'});
-            
-            doc.save(nombreArchivoFinal);
-            const pdfBase64 = doc.output('datauristring').split(',')[1];
-            
-            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
+            // Subida invisible a Drive
             const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) }).catch(err => console.log(err));
-        }
-    </script>
 
+            // Compartir directo a RawBT
+            if (navigator.canShare && navigator.userAgent.match(/Android/i)) {
+                const file = new File([pdfBlob], nombreArchivoFinal, { type: 'application/pdf' });
+                navigator.share({ files: [file], title: 'Imprimir Ticket' }).catch(err => { console.log(err); doc.save(nombreArchivoFinal); });
+            } else { doc.save(nombreArchivoFinal); }
+        }
+
+        function renderHistorialVentas() { const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = ''; let ventasOrdenadas = [...ventas].sort((a,b) => b.timestamp - a.timestamp); ventasOrdenadas.forEach(v => { let detalles = v.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", "); tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha}</td><td>${v.cliente}</td><td>${detalles}</td><td>$${(v.descuento || 0).toFixed(2)}</td><td style="font-weight:bold; color:green;">$${v.total.toFixed(2)}</td></tr>`; }); }
+        function renderHistorialCompras() { const tbody = document.getElementById('tablaHistorialCompras'); tbody.innerHTML = ''; let comprasOrdenadas = [...comprasHistorial].sort((a,b) => b.timestamp - a.timestamp); comprasOrdenadas.forEach(c => { let detalles = c.productos ? c.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ") : "N/A"; tbody.innerHTML += `<tr><td>${c.fecha}</td><td>${c.proveedor}</td><td>${detalles}</td><td style="font-weight:bold; color:blue;">$${c.total.toFixed(2)}</td></tr>`; }); }
+        window.descargarCSV = function() { if (ventas.length === 0) return alert("No hay ventas"); let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad\n"; ventas.forEach(v => { let u = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${u.toFixed(2)}\n`; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+    </script>
     <script>
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
         function showTab(tabId) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); event.target.classList.add('active'); }
     </script>
 </body>
 </html>
-
-
