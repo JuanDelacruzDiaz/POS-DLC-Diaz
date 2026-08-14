@@ -5,49 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP Cloud - DLC Díaz</title>
     
+    <!-- ETIQUETAS PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#004080">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
     
+    <!-- Librerías de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
+        
+        /* LOGIN */
         #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #004080; }
         .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
         .login-box h2 { color: #004080; margin-bottom: 20px; }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .login-box button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .login-box button:hover { background: #218838; }
+
+        /* APP */
         #app-container { display: none; padding: 20px; }
+        
         .header { background-color: #004080; color: white; padding: 15px 20px; text-align: left; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 22px; }
         .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
         .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .tab-btn { padding: 10px 15px; background: #e4e6eb; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 13px; }
         .tab-btn.active { background: #004080; color: white; box-shadow: 0 4px 6px rgba(0,64,128,0.3); }
         .tab-content { display: none; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8f9fa; color: #555; }
+        
         .btn { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; }
         .btn-danger { background: #dc3545; padding: 6px 10px; }
         .btn-blue { background: #007bff; }
         .btn-purple { background: #6f42c1; color: white; }
         input, select { padding: 10px; margin: 8px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         .totales { font-size: 1.4em; text-align: right; margin-top: 20px; font-weight: bold; color: #004080; }
+        
         .kpi-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 5px solid #004080; margin-bottom: 15px; }
         .kpi-title { font-size: 14px; color: #666; margin-bottom: 5px; }
         .kpi-value { font-size: 24px; font-weight: bold; color: #333; }
         .text-green { color: #28a745 !important; }
         .text-red { color: #dc3545 !important; }
+        
         .corte-container { background: #fff3cd; padding: 25px; border-radius: 10px; border: 2px dashed #ffc107; text-align: center; }
     </style>
 </head>
 <body>
 
+    <!-- LOGIN -->
     <div id="login-screen">
         <div class="login-box">
             <img src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" width="80" alt="Logo">
@@ -59,6 +76,7 @@
         </div>
     </div>
 
+    <!-- APP CONTAINER -->
     <div id="app-container">
         <div class="header">
             <h1>Distribuidora DLC Díaz - ERP Cloud</h1>
@@ -69,7 +87,7 @@
             <button class="tab-btn active" onclick="showTab('pos')">🛒 POS</button>
             <button class="tab-btn" onclick="showTab('inventario')">📦 Inventario</button>
             <button class="tab-btn" onclick="showTab('compras')">📥 Comprar a Proveedor</button>
-            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas</button>
+            <button class="tab-btn" onclick="showTab('finanzas')">📊 Finanzas (Analítica)</button>
             <button class="tab-btn" onclick="showTab('corteCaja')" style="background-color: #ffc107; color: #000;">💰 Corte Diario</button>
             <button class="tab-btn" onclick="showTab('historialVentas')">📜 Historial Ventas</button>
             <button class="tab-btn" onclick="showTab('historialCompras')">📜 Historial Compras</button>
@@ -77,6 +95,7 @@
             <button class="tab-btn" onclick="showTab('proveedores')">🚚 Proveedores</button>
         </div>
 
+        <!-- POS -->
         <div id="pos" class="tab-content active">
             <div class="grid-2">
                 <div>
@@ -97,6 +116,7 @@
             </div>
         </div>
 
+        <!-- INVENTARIO -->
         <div id="inventario" class="tab-content">
             <div class="grid-2">
                 <div>
@@ -109,10 +129,17 @@
                     <button class="btn btn-blue" onclick="guardarProducto()">Guardar</button>
                 </div>
             </div>
-            <h3 style="margin-top: 30px;">Inventario</h3>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+                <h3 style="margin: 0;">Inventario Actual</h3>
+                <!-- NUEVO BOTÓN PARA DESCARGAR EL CATÁLOGO DE PRECIOS -->
+                <button class="btn btn-purple" onclick="descargarCatalogoPDF()">📄 Descargar Catálogo de Precios (PDF)</button>
+            </div>
+            
             <div style="overflow-x: auto;"><table><thead><tr><th>Cat</th><th>Nombre</th><th>Costo</th><th>Precio</th><th>Stock</th></tr></thead><tbody id="tablaInventario"></tbody></table></div>
         </div>
 
+        <!-- COMPRAS -->
         <div id="compras" class="tab-content">
             <div class="grid-2">
                 <div>
@@ -135,6 +162,7 @@
             </div>
         </div>
 
+        <!-- FINANZAS -->
         <div id="finanzas" class="tab-content">
             <div style="background: #e4e6eb; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
                 <h3 style="margin: 0;">Filtro de Análisis:</h3>
@@ -162,12 +190,13 @@
                         <button class="btn btn-danger" onclick="guardarGasto()">Registrar</button>
                     </div>
                     <div style="background:#e8f5e9; padding:20px; border-radius:8px; margin-top:20px;">
-                        <h4>📥 Reportes</h4><button class="btn btn-blue" onclick="descargarCSV()">Descargar CSV</button>
+                        <h4>📥 Reportes</h4><button class="btn btn-blue" onclick="descargarCSV()">Descargar CSV de Ventas</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- CORTE CAJA -->
         <div id="corteCaja" class="tab-content">
             <div class="corte-container">
                 <h2>💰 Corte de Caja Diario</h2>
@@ -187,13 +216,17 @@
             </div>
         </div>
 
+        <!-- HISTORIALES Y DIRECTORIOS -->
         <div id="historialVentas" class="tab-content"><h3>Historial de Ventas</h3><div style="overflow-x: auto;"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Descuento</th><th>Total</th></tr></thead><tbody id="tablaHistorialVentas"></tbody></table></div></div>
         <div id="historialCompras" class="tab-content"><h3>Historial de Compras</h3><div style="overflow-x: auto;"><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Productos Ingresados</th><th>Total Pagado</th></tr></thead><tbody id="tablaHistorialCompras"></tbody></table></div></div>
         <div id="clientes" class="tab-content"><div class="grid-2"><div><h3>Nuevo Cliente</h3><input type="text" id="cliNom" placeholder="Nombre"><input type="text" id="cliTel" placeholder="Teléfono"><input type="text" id="cliDir" placeholder="Dirección"><input type="email" id="cliEmail" placeholder="Email"><button class="btn btn-blue" onclick="guardarEntidad('clientes')">Guardar</button></div></div><h3 style="margin-top: 30px;">Directorio</h3><table id="tablaClientes"><thead><tr><th>Nombre</th><th>Tel</th><th>Dir</th><th>Email</th></tr></thead><tbody></tbody></table></div>
         <div id="proveedores" class="tab-content"><div class="grid-2"><div><h3>Nuevo Proveedor</h3><input type="text" id="provNom" placeholder="Empresa"><input type="text" id="provTel" placeholder="Teléfono"><input type="text" id="provDir" placeholder="Dirección"><input type="text" id="provContacto" placeholder="Contacto"><button class="btn btn-blue" onclick="guardarEntidad('proveedores')">Guardar</button></div></div><h3 style="margin-top: 30px;">Directorio</h3><table id="tablaProveedores"><thead><tr><th>Empresa</th><th>Tel</th><th>Dir</th><th>Contacto</th></tr></thead><tbody></tbody></table></div>
-    </div> <script type="module">
+    </div> <!-- FIN APP CONTAINER -->
+
+    <!-- SCRIPT DE LÓGICA Y FIREBASE -->
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
@@ -306,8 +339,7 @@
             document.getElementById('corteVentasHoy').innerText = `+$${vHoy.toFixed(2)}`; document.getElementById('corteGastosHoy').innerText = `-$${gHoy.toFixed(2)}`; document.getElementById('corteTotalEsperado').innerText = `$${esperado.toFixed(2)}`; return { vHoy, gHoy, fondo, esperado };
         }
 
-        // --- SISTEMA NATIVO DE IMPRESIÓN DIRECTA (WEB SHARE API) ---
-
+        // --- SISTEMA DE IMPRESIÓN ---
         window.imprimirCorte = function() {
             let datosCorte = calcularCorteDiario(); const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 90] });
             doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("DLC DÍAZ", 29, 10, {align: 'center'}); doc.setFontSize(9); doc.text("CORTE DE CAJA", 29, 15, {align: 'center'}); doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text(`FECHA: ${new Date().toLocaleString()}`, 29, 20, {align: 'center'});
@@ -318,11 +350,10 @@
             let nomArchivo = `CorteCaja_${new Date().getTime()}.pdf`;
             const pdfBlob = doc.output('blob'); const pdfBase64 = doc.output('datauristring').split(',')[1];
             
-            // Subida invisible a Drive
+            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
             const scriptURL = "https://script.google.com/macros/s/TU_CODIGO_AQUI/exec"; 
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nomArchivo, base64: pdfBase64 }) }).catch(err => console.log(err));
 
-            // Compartir directo a RawBT
             if (navigator.canShare && navigator.userAgent.match(/Android/i)) {
                 const file = new File([pdfBlob], nomArchivo, { type: 'application/pdf' });
                 navigator.share({ files: [file], title: 'Imprimir Corte' }).catch(err => { console.log(err); doc.save(nomArchivo); });
@@ -343,11 +374,10 @@
             
             const pdfBlob = doc.output('blob'); const pdfBase64 = doc.output('datauristring').split(',')[1];
             
-            // Subida invisible a Drive
+            // 🚨 PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE APPS SCRIPT 🚨
             const scriptURL = "https://script.google.com/macros/s/AKfycbzzMyFIyEy6cq_3I68ZP-RC06yvf4nIR5oet9wlN1oZp9cix-wM7Hqz9h8plhwoQQdjSg/exec";
             fetch(scriptURL, { method: 'POST', body: JSON.stringify({ filename: nombreArchivoFinal, base64: pdfBase64 }) }).catch(err => console.log(err));
 
-            // Compartir directo a RawBT
             if (navigator.canShare && navigator.userAgent.match(/Android/i)) {
                 const file = new File([pdfBlob], nombreArchivoFinal, { type: 'application/pdf' });
                 navigator.share({ files: [file], title: 'Imprimir Ticket' }).catch(err => { console.log(err); doc.save(nombreArchivoFinal); });
@@ -357,6 +387,60 @@
         function renderHistorialVentas() { const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = ''; let ventasOrdenadas = [...ventas].sort((a,b) => b.timestamp - a.timestamp); ventasOrdenadas.forEach(v => { let detalles = v.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", "); tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha}</td><td>${v.cliente}</td><td>${detalles}</td><td>$${(v.descuento || 0).toFixed(2)}</td><td style="font-weight:bold; color:green;">$${v.total.toFixed(2)}</td></tr>`; }); }
         function renderHistorialCompras() { const tbody = document.getElementById('tablaHistorialCompras'); tbody.innerHTML = ''; let comprasOrdenadas = [...comprasHistorial].sort((a,b) => b.timestamp - a.timestamp); comprasOrdenadas.forEach(c => { let detalles = c.productos ? c.productos.map(p => `(${p.cant}) ${p.nombre}`).join(", ") : "N/A"; tbody.innerHTML += `<tr><td>${c.fecha}</td><td>${c.proveedor}</td><td>${detalles}</td><td style="font-weight:bold; color:blue;">$${c.total.toFixed(2)}</td></tr>`; }); }
         window.descargarCSV = function() { if (ventas.length === 0) return alert("No hay ventas"); let csvContent = "data:text/csv;charset=utf-8,Folio/Fecha,Cliente,Ingreso,Costo,Utilidad\n"; ventas.forEach(v => { let u = v.total - v.costo; let f = v.fecha.replace(/,/g, ''); csvContent += `"${v.folio || f}","${v.cliente}",${v.total.toFixed(2)},${v.costo.toFixed(2)},${u.toFixed(2)}\n`; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "Reporte_Ventas.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+
+        // --- NUEVO: CATÁLOGO DE PRECIOS PDF ---
+        window.descargarCatalogoPDF = function() {
+            if (productos.length === 0) return alert("El inventario está vacío.");
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'letter');
+            
+            // Encabezado Profesional
+            doc.setFontSize(16); doc.setFont("helvetica", "bold");
+            doc.text("DISTRIBUIDORA DE PAPELERÍA DLC DÍAZ", 105, 15, { align: 'center' });
+            
+            doc.setFontSize(10); doc.setFont("helvetica", "normal");
+            doc.text("IXTAPALUCA, EDO. DE MÉXICO", 105, 21, { align: 'center' });
+            doc.text("juan24.dlacruz@gmail.com | Tel: 5574695533", 105, 26, { align: 'center' });
+            
+            let fechaActual = new Date().toLocaleString();
+            doc.text(`Lista de Precios al Público - Actualizada el: ${fechaActual}`, 105, 33, { align: 'center' });
+            
+            doc.setLineDashPattern([1, 1], 0); doc.line(15, 36, 195, 36); doc.setLineDashPattern([], 0);
+
+            // Preparar y Ordenar los Datos
+            let prodOrd = [...productos].sort((a, b) => {
+                let catA = (a.categoria || '').toLowerCase(); let catB = (b.categoria || '').toLowerCase();
+                if (catA < catB) return -1; if (catA > catB) return 1;
+                return (a.nombre || '').localeCompare(b.nombre || '');
+            });
+
+            let tableData = prodOrd.map(p => [
+                p.categoria || 'Sin Categoría',
+                p.nombre,
+                `$${p.precio.toFixed(2)}`
+            ]);
+
+            // Generar Tabla Inteligente (AutoTable)
+            doc.autoTable({
+                startY: 40,
+                head: [['Categoría', 'Producto', 'Precio al Público']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [0, 64, 128], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    0: { cellWidth: 50 },
+                    1: { cellWidth: 100 },
+                    2: { cellWidth: 35, halign: 'right', fontStyle: 'bold', textColor: [0, 100, 0] }
+                }
+            });
+
+            // Forzar descarga para que puedas mandarlo por WhatsApp o Correo
+            let fDoc = `${String(new Date().getDate()).padStart(2, '0')}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${new Date().getFullYear()}`;
+            doc.save(`Catalogo_Precios_DLCDiaz_${fDoc}.pdf`);
+        };
+
     </script>
     <script>
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
