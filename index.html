@@ -189,8 +189,8 @@
             <div class="grid-2">
                 <div>
                     <h3>📄 Estado de Resultados del Periodo</h3>
-                    <div class="kpi-card"><div class="kpi-title">Mercancía Vendida (Devengado)</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
-                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Costo de la Mercancía Vendida</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
+                    <div class="kpi-card"><div class="kpi-title">Ingresos Netos (Ventas menos Devoluciones)</div><div class="kpi-value text-green" id="kpiVentas">$0.00</div></div>
+                    <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Costo de la Mercancía (Ajustado)</div><div class="kpi-value text-red" id="kpiCostos">-$0.00</div></div>
                     <div class="kpi-card"><div class="kpi-title">= Utilidad Bruta</div><div class="kpi-value" id="kpiBruta">$0.00</div></div>
                     <div class="kpi-card" style="border-left-color:#dc3545;"><div class="kpi-title">Gastos Operativos Registrados</div><div class="kpi-value text-red" id="kpiGastos">-$0.00</div></div>
                     <div class="kpi-card" style="border-left-color:#28a745; background-color:#e8f5e9;"><div class="kpi-title">UTILIDAD NETA DEL PERIODO</div><div class="kpi-value text-green" id="kpiNeta" style="font-size:32px;">$0.00</div></div>
@@ -219,7 +219,7 @@
                 </div>
                 <div class="grid-2" style="margin-top: 30px; text-align: left;">
                     <div class="kpi-card" style="background: white;"><div class="kpi-title">Efectivo Recibido Hoy (Ventas + Abonos)</div><div class="kpi-value text-green" id="corteVentasHoy">+$0.00</div></div>
-                    <div class="kpi-card" style="background: white; border-left-color:#dc3545;"><div class="kpi-title">Retiros Hoy (Gastos + Devoluciones)</div><div class="kpi-value text-red" id="corteGastosHoy">-$0.00</div></div>
+                    <div class="kpi-card" style="background: white; border-left-color:#dc3545;"><div class="kpi-title">Retiros Hoy (Gastos + Reembolsos Dev.)</div><div class="kpi-value text-red" id="corteGastosHoy">-$0.00</div></div>
                 </div>
                 <div style="background: #d4edda; padding: 20px; border-radius: 8px; border: 2px solid #28a745; margin-top: 20px;">
                     <div style="font-size: 18px; color: #155724; font-weight: bold;">Efectivo Esperado en el Cajón:</div>
@@ -301,7 +301,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // 🚨 PEGA AQUÍ TUS CLAVES DE FIREBASE 🚨
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDc-Sjy6ErjMi4RzQ92dN3djcUb7lGH5HY",
   authDomain: "pos-dlc-diaz.firebaseapp.com",
   projectId: "pos-dlc-diaz",
@@ -328,7 +328,7 @@
             unsubscribeFuncs.push(onSnapshot(collection(db, "ventas"), (snap) => { ventas = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderHistorialVentas(); renderCuentasCobrar(); calcularFinanzas(); calcularCorteDiario(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "gastos"), (snap) => { gastos = snap.docs.map(d => d.data()); calcularFinanzas(); calcularCorteDiario(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "compras"), (snap) => { comprasHistorial = snap.docs.map(d => d.data()); calcularFinanzas(); }));
-            unsubscribeFuncs.push(onSnapshot(collection(db, "devoluciones"), (snap) => { devoluciones = snap.docs.map(d => d.data()); calcularCorteDiario(); }));
+            unsubscribeFuncs.push(onSnapshot(collection(db, "devoluciones"), (snap) => { devoluciones = snap.docs.map(d => d.data()); calcularFinanzas(); calcularCorteDiario(); }));
             unsubscribeFuncs.push(onSnapshot(collection(db, "abonos"), (snap) => { abonosHistorial = snap.docs.map(d => d.data()); calcularCorteDiario(); }));
         }
         function detenerBaseDeDatos() { unsubscribeFuncs.forEach(unsub => unsub()); unsubscribeFuncs = []; }
@@ -358,8 +358,7 @@
         window.procesarVentaCredito = function() {
             let abono = parseFloat(document.getElementById('abonoInicial').value) || 0; let { total } = window.renderCarrito();
             if(abono < 0 || abono >= total) return alert("El abono debe ser mayor o igual a 0 y menor al total.");
-            cerrarModales();
-            ejecutarVenta('credito', abono);
+            cerrarModales(); ejecutarVenta('credito', abono);
         }
 
         window.cobrar = function(tipo) { if(carritoPOS.length === 0) return; ejecutarVenta(tipo, window.renderCarrito().total); }
@@ -384,7 +383,6 @@
             let dirCliente = ""; if(cliente !== "Mostrador") { let objCli = clientes.find(c => c.nombre === cliente); if(objCli) dirCliente = objCli.direccion; }
             let nombreArchivo = `Ticket_${folio}.pdf`;
             
-            // Generar PDF
             generarPDF(folio, fechaStr, cliente, dirCliente, carritoPOS, subtotal, desc, total, nombreArchivo, tipoVenta, abonoInicial, dataVenta.saldo);
             carritoPOS = []; document.getElementById('descVenta').value = 0; window.renderCarrito(); alert(`Venta ${tipoVenta} procesada. Folio: ${folio}`);
         }
@@ -416,7 +414,6 @@
             await addDoc(collection(db, "abonos"), { folio_venta: venta.folio, monto: monto, fecha: fechaActual.toLocaleString(), timestamp: fechaActual.getTime() });
             
             cerrarModales(); alert(`Abono registrado. Saldo restante: $${nuevoSaldo.toFixed(2)}`);
-            // Emitir comprobante de abono
             generarPDFAbono(venta.folio, fechaActual.toLocaleString(), venta.cliente, monto, nuevoSaldo);
         }
 
@@ -442,8 +439,9 @@
                 if(devInput) {
                     let cantDev = parseInt(devInput.value) || 0;
                     if(cantDev > 0) {
-                        itemsADevolver.push({ id: p.id, nombre: p.nombre, cant: cantDev, precio: p.precio });
-                        montoReembolso += (cantDev * p.precio); costoReembolso += (cantDev * p.costo);
+                        itemsADevolver.push({ id: p.id, nombre: p.nombre, cant: cantDev, precio: p.precio, costo: p.costo || 0 });
+                        montoReembolso += (cantDev * p.precio);
+                        costoReembolso += (cantDev * (p.costo || 0));
                         productosActualizados[index].devueltos = (productosActualizados[index].devueltos || 0) + cantDev;
                     }
                 }
@@ -451,20 +449,25 @@
 
             if(itemsADevolver.length === 0) return alert("Ingresa al menos 1 artículo para devolver.");
             
-            // Si hubo descuento global en la venta, la devolución de dinero es proporcional. (Complejo, lo dejamos directo por ahora).
             const fAct = new Date();
-            
-            // 1. Actualizar Venta
             let totalDevueltoHist = (venta.total_devuelto || 0) + montoReembolso;
-            await updateDoc(doc(db, "ventas", idVenta), { productos: productosActualizados, total_devuelto: totalDevueltoHist, estado: 'devuelta_parcial' });
+            let nuevoEstado = (totalDevueltoHist >= venta.total) ? 'devuelta_total' : 'devuelta_parcial';
+
+            // 1. Guardar la devolución en la colección independiente (Para que se reste en Finanzas y Corte)
+            await addDoc(collection(db, "devoluciones"), { folio_venta: venta.folio, fecha: fAct.toLocaleString(), timestamp: fAct.getTime(), monto: montoReembolso, costo_recuperado: costoReembolso, items: itemsADevolver });
+
+            // 2. Actualizar el documento de la Venta (Modificando su Historial visual)
+            await updateDoc(doc(db, "ventas", idVenta), { productos: productosActualizados, total_devuelto: totalDevueltoHist, estado: nuevoEstado });
             
-            // 2. Registrar Devolución (Impacta Corte Caja)
-            await addDoc(collection(db, "devoluciones"), { folio_venta: venta.folio, fecha: fAct.toLocaleString(), timestamp: fAct.getTime(), monto: montoReembolso, items: itemsADevolver });
+            // 3. Regresar Stock (Asegurando la suma matemática)
+            for(let i of itemsADevolver) { 
+                let prodDB = productos.find(x => x.id === i.id); 
+                if(prodDB) { 
+                    await updateDoc(doc(db, "productos", i.id), { stock: parseInt(prodDB.stock) + parseInt(i.cant) }); 
+                } 
+            }
             
-            // 3. Regresar Stock
-            for(let i of itemsADevolver) { let prodDB = productos.find(x => x.id === i.id); if(prodDB) { await updateDoc(doc(db, "productos", i.id), { stock: prodDB.stock + i.cant }); } }
-            
-            cerrarModales(); alert(`Devolución procesada por $${montoReembolso.toFixed(2)}`);
+            cerrarModales(); alert(`Devolución procesada por $${montoReembolso.toFixed(2)}. Inventario sumado exitosamente.`);
             generarPDFDevolucion(venta.folio, fAct.toLocaleString(), venta.cliente, itemsADevolver, montoReembolso);
         }
 
@@ -472,8 +475,19 @@
             const tbody = document.getElementById('tablaHistorialVentas'); tbody.innerHTML = ''; let vOrd = [...ventas].sort((a,b) => b.timestamp - a.timestamp);
             vOrd.forEach(v => {
                 let badge = v.tipo === 'credito' ? '💳 Crédito' : '💵 Contado';
+                
+                // LÓGICA VISUAL PARA DEVOLUCIONES
+                let descMonto = `$${v.total.toFixed(2)}`;
+                if(v.total_devuelto && v.total_devuelto > 0) {
+                    descMonto = `<span style="text-decoration: line-through; color: #888;">$${v.total.toFixed(2)}</span><br><strong style="color:red;">-$${v.total_devuelto.toFixed(2)} Devuelto</strong><br><strong style="color:green;">Final: $${(v.total - v.total_devuelto).toFixed(2)}</strong>`;
+                }
+
                 let actionBtn = `<button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="abrirDevolucion('${v.id}')">Devolver</button>`;
-                tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha.split(',')[0]}</td><td>${badge}</td><td>${v.cliente}</td><td>$${v.total.toFixed(2)}</td><td>${actionBtn}</td></tr>`;
+                if (v.estado === 'devuelta_total') {
+                    actionBtn = `<span style="color:red; font-size:11px; font-weight:bold;">Cancelada</span>`;
+                }
+
+                tbody.innerHTML += `<tr><td>${v.folio || '-'}</td><td>${v.fecha.split(',')[0]}</td><td>${badge}</td><td>${v.cliente}</td><td>${descMonto}</td><td>${actionBtn}</td></tr>`;
             });
         }
 
@@ -484,11 +498,11 @@
         function renderListaCompras() { const tbody = document.getElementById('tablaListaCompra'); tbody.innerHTML = ''; let total = 0; listaCompras.forEach(i => { total += i.subtotal; tbody.innerHTML += `<tr><td>${i.cant}</td><td>${i.nombre}</td><td>$${i.subtotal.toFixed(2)}</td></tr>`; }); document.getElementById('totalCompra').innerText = `TOTAL: $${total.toFixed(2)}`; }
         window.finalizarCompra = async function() {
             const prov = document.getElementById('compraProveedorSelect').value; if(listaCompras.length===0 || !prov) return; let totalCompraGral = 0;
-            for(let i of listaCompras) { let pReal = productos.find(x => x.id === i.id); let nCosto = pReal.stock > 0 ? ((pReal.stock*pReal.costo)+(i.cant*i.costo))/(pReal.stock+i.cant) : i.costo; await updateDoc(doc(db, "productos", i.id), { stock: pReal.stock + i.cant, costo: nCosto, precio: i.precio }); totalCompraGral += i.subtotal; }
+            for(let i of listaCompras) { let pReal = productos.find(x => x.id === i.id); let nCosto = pReal.stock > 0 ? ((pReal.stock*pReal.costo)+(i.cant*i.costo))/(pReal.stock+i.cant) : i.costo; await updateDoc(doc(db, "productos", i.id), { stock: parseInt(pReal.stock) + parseInt(i.cant), costo: nCosto, precio: i.precio }); totalCompraGral += i.subtotal; }
             await addDoc(collection(db, "compras"), { fecha: new Date().toLocaleString(), timestamp: new Date().getTime(), proveedor: prov, total: totalCompraGral, productos: listaCompras }); listaCompras = []; renderListaCompras(); alert("Compra registrada.");
         }
 
-        // --- FINANZAS AVANZADAS CON FILTRO ESPECIFICO ---
+        // --- FINANZAS AVANZADAS CON FILTRO ESPECIFICO E IMPACTO DE DEVOLUCIONES ---
         window.guardarGasto = async function() { let con = document.getElementById('gastoConcepto').value; let mon = parseFloat(document.getElementById('gastoMonto').value); if(!con || isNaN(mon)) return; let d = new Date(); await addDoc(collection(db, "gastos"), { fecha: d.toLocaleString(), timestamp: d.getTime(), concepto: con, monto: mon }); alert("Gasto Registrado"); document.getElementById('gastoConcepto').value=''; document.getElementById('gastoMonto').value=''; }
         
         window.cambioFiltroFinanzas = function() {
@@ -512,7 +526,20 @@
             }
 
             let totalVentas = 0; let totalCostosVenta = 0; 
-            ventas.forEach(v => { if(v.timestamp >= limiteInicio && v.timestamp <= limiteFin) { totalVentas += v.total; totalCostosVenta += v.costo; } });
+            ventas.forEach(v => { 
+                if(v.timestamp >= limiteInicio && v.timestamp <= limiteFin) { 
+                    totalVentas += v.total; totalCostosVenta += v.costo; 
+                } 
+            });
+
+            // LÓGICA CLAVE: Restar las devoluciones de los ingresos de Finanzas
+            devoluciones.forEach(d => {
+                if(d.timestamp >= limiteInicio && d.timestamp <= limiteFin) {
+                    totalVentas -= d.monto;
+                    totalCostosVenta -= (d.costo_recuperado || 0);
+                }
+            });
+
             let totalGastos = 0; gastos.forEach(g => { if(g.timestamp >= limiteInicio && g.timestamp <= limiteFin) { totalGastos += g.monto; } });
             let totalComprasPer = 0; comprasHistorial.forEach(c => { if(c.timestamp >= limiteInicio && c.timestamp <= limiteFin) { totalComprasPer += c.total; } });
 
@@ -527,17 +554,15 @@
         window.calcularCorteDiario = function() {
             let d = new Date(); d.setHours(0,0,0,0); let limiteHoy = d.getTime();
             
-            // Efectivo que ENTRÓ hoy: Ventas al contado + Enganches de Créditos + Abonos de deudas viejas
             let efecEntrante = 0;
             ventas.forEach(v => { 
                 if(v.timestamp >= limiteHoy) {
                     if(v.tipo === 'contado' || !v.tipo) efecEntrante += v.total;
-                    else if(v.tipo === 'credito') efecEntrante += (v.abonado || 0); // Solo el enganche de hoy
+                    else if(v.tipo === 'credito') efecEntrante += (v.abonado || 0); 
                 }
             });
             abonosHistorial.forEach(a => { if(a.timestamp >= limiteHoy) efecEntrante += a.monto; });
 
-            // Efectivo que SALIÓ hoy: Gastos + Devoluciones (reembolsos)
             let efecSaliente = 0;
             gastos.forEach(g => { if(g.timestamp >= limiteHoy) efecSaliente += g.monto; });
             devoluciones.forEach(dev => { if(dev.timestamp >= limiteHoy) efecSaliente += dev.monto; });
@@ -594,14 +619,6 @@
             doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TOTAL EN CAJA:", 2, y); doc.text(`$${d.esperado.toFixed(2)}`, 56, y, {align: 'right'}); y+=12; doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.text("Firma de Conformidad", 29, y, {align: 'center'});
             sendToDriveAndShare(doc, `CorteCaja_${new Date().getTime()}.pdf`);
         }
-
-        window.descargarCatalogoPDF = function() {
-            if (productos.length === 0) return alert("Inventario vacío"); const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'letter');
-            doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text("DISTRIBUIDORA DLC DÍAZ", 105, 15, { align: 'center' }); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("IXTAPALUCA, EDO. DE MÉXICO", 105, 21, { align: 'center' }); doc.text("Catálogo Oficial de Precios", 105, 26, { align: 'center' });
-            let prodOrd = [...productos].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')); let tableData = prodOrd.map(p => [ p.nombre, p.notas || '', `$${p.precio.toFixed(2)}` ]);
-            doc.autoTable({ startY: 32, head: [['Producto', 'Condiciones de Venta', 'Precio']], body: tableData, theme: 'striped', headStyles: { fillColor: [0, 64, 128] }, styles: { fontSize: 9 }, columnStyles: { 0: { cellWidth: 85 }, 1: { cellWidth: 65, fontStyle: 'italic' }, 2: { cellWidth: 35, halign: 'right', fontStyle: 'bold' } } });
-            doc.save(`Catalogo_${new Date().getTime()}.pdf`);
-        };
     </script>
     <script>
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
